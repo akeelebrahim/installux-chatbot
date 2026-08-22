@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Installux ChatBot</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a; --panel: #1e293b; --panel2: #273449; --accent: #38bdf8;
+    --text: #e2e8f0; --muted: #94a3b8; --green: #4ade80; --red: #f87171;
+    --gold: #facc15; --line: #334155;
+  }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  header { display: flex; align-items: center; gap: 10px; padding: 10px 18px;
+    background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; white-space: nowrap; }
+  .badge { padding: 3px 10px; border-radius: 999px; background: var(--panel2); color: var(--muted); white-space: nowrap; }
+  .badge b { color: var(--text); }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .dot.on { background: var(--green); } .dot.off { background: var(--red); }
+  .dot.busy { background: var(--gold); }
+  .spacer { flex: 1; }
+  #computeBadge, #backendBadge { display: inline-flex; align-items: center; gap: 6px; }
+  #computeBadge.dim { opacity: .45; }
+  #backend, #compute { background: var(--bg); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 2px 6px; font-size: 12px; }
+  button.mini { padding: 3px 9px; font-size: 11px; border-radius: 6px; }
+
+  button { background: var(--accent); color: #0f172a; border: none; border-radius: 8px;
+    padding: 7px 14px; font-weight: 600; cursor: pointer; font-size: 13px; }
+  button.ghost { background: var(--panel2); color: var(--text); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+
+  main { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 900px; padding: 14px 18px; border-radius: 12px; line-height: 1.55; font-size: 14px; }
+  .msg.user { align-self: flex-end; background: var(--accent); color: #0f172a; white-space: pre-wrap; }
+  .msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); }
+  .msg .meta { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .msg h2, .msg h3, .msg h4 { margin: 10px 0 4px; font-size: 14px; }
+  .msg ul { margin: 6px 0 6px 20px; }
+  .msg li { margin: 2px 0; }
+  .msg p { margin: 6px 0; }
+  .msg p:first-child { margin-top: 0; }
+  .msg code { background: #0f172a; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  .msg em { color: var(--muted); font-style: italic; }
+  .msg hr { border: none; border-top: 1px solid var(--line); margin: 10px 0; }
+  /* wide spec tables scroll inside the bubble instead of stretching the page */
+  .tablewrap { overflow-x: auto; margin: 8px 0; }
+  .msg table { border-collapse: collapse; font-size: 13px; min-width: 100%; }
+  .msg th, .msg td { border: 1px solid var(--line); padding: 5px 10px; text-align: left;
+    white-space: nowrap; }
+  .msg th { background: var(--panel2); color: var(--text); font-weight: 600; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { background: var(--panel2); border: 1px solid var(--line); padding: 6px 12px; border-radius: 16px;
+    font-size: 13px; cursor: pointer; color: var(--text); }
+  .chip:hover { background: var(--accent); color: #0f172a; }
+
+  section { align-self: flex-start; max-width: 100%; }
+  section h3 { font-size: 12px; color: var(--muted); margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: .5px; }
+  .hits, .imgs { display: flex; flex-wrap: wrap; gap: 12px; }
+  .card { width: 208px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    overflow: hidden; cursor: pointer; transition: .12s; }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card img { width: 100%; height: 130px; object-fit: contain; background: #fff; display: block; }
+  .card .cmeta { padding: 8px 10px; font-size: 12px; }
+  .card .cmeta b { display: block; color: var(--accent); word-break: break-word; }
+  .card .cmeta span { color: var(--muted); display: block; margin-top: 2px; }
+  .card .snippet { font-size: 11px; color: var(--muted); max-height: 52px; overflow: hidden; }
+  .tag { display: inline-block; background: var(--panel2); border-radius: 4px; padding: 1px 6px;
+    font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .tag.good { background: #14532d; color: #bbf7d0; }
+  /* a reference-only part: no image plate, so the text fills the card */
+  .card.nophoto { display: flex; flex-direction: column; justify-content: space-between;
+    border-left: 3px solid var(--accent); cursor: default; }
+  .card.nophoto:hover { transform: none; border-color: var(--line); border-left-color: var(--accent); }
+  .card.nophoto .cmeta { padding: 12px 12px 10px; }
+  .card.nophoto .cmeta b { font-size: 15px; margin-bottom: 5px; }
+  .card.nophoto .desc { font-size: 13px; line-height: 1.4; min-height: 0; }
+  .imgs, .hits { align-items: flex-start; }
+  .card .cmeta .desc { color: var(--text); min-height: 32px; }
+  .cardacts { display: flex; gap: 2px; padding: 4px 6px; border-top: 1px solid var(--line);
+    background: var(--panel2); }
+  .cardacts span { flex: 1; text-align: center; cursor: pointer; font-size: 13px;
+    padding: 3px 0; border-radius: 5px; color: var(--muted); }
+  .cardacts span:hover { background: var(--accent); color: #0f172a; }
+  .bulkbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    align-self: flex-start; margin-top: 2px; }
+  .bulkbar .lbl { font-size: 12px; color: var(--muted); margin-right: 2px; }
+  .reflist { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+  .reflist .lbl { font-size: 12px; color: var(--muted); margin-right: 2px; }
+  .reftag { background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
+    padding: 3px 9px; font-size: 12px; cursor: pointer; color: var(--accent); }
+  .reftag:hover { border-color: var(--accent); }
+  .reftag i { color: var(--muted); font-style: normal; margin-left: 6px; }
+
+  footer { padding: 12px 18px; background: var(--panel); border-top: 1px solid var(--line); }
+  #controls { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  #controls label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  #controls input[type=number] { width: 58px; background: var(--panel2); border: 1px solid var(--line);
+    color: var(--text); border-radius: 6px; padding: 4px 6px; font-size: 12px; }
+  .iconbtn { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 10px; cursor: pointer; font-size: 15px; line-height: 1.2; display: inline-flex; }
+  .iconbtn:hover { border-color: var(--accent); }
+  .iconbtn.rec { background: #7f1d1d; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .askrow { display: flex; gap: 8px; }
+  #q { flex: 1; background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 10px 14px; font-size: 14px; outline: none; }
+  #q:focus { border-color: var(--accent); }
+
+  #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.9);
+    align-items: center; justify-content: center; z-index: 50; flex-direction: column; gap: 12px; }
+  #modal.open { display: flex; }
+  #modal .imgWrap { position: relative; max-width: 92vw; max-height: 82vh; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; }
+  #modalStage { position: relative; display: inline-block; transform-origin: center center;
+    cursor: grab; }
+  #modal img { display: block; max-width: 92vw; max-height: 82vh; border-radius: 6px;
+    background: #fff; }
+  #modalMarks { position: absolute; inset: 0; pointer-events: none; }
+  #modalMarks i { position: absolute; background: rgba(250, 204, 21, .32);
+    outline: 1.5px solid rgba(250, 204, 21, .95); border-radius: 2px; }
+  mark { background: rgba(250, 204, 21, .30); color: inherit; border-radius: 2px; padding: 0 1px; }
+  /* keyword boxes drawn over a card thumbnail, in the image's own coordinates */
+  .shot { position: relative; display: block; line-height: 0; }
+  .shot i { position: absolute; background: rgba(250, 204, 21, .34);
+    outline: 1px solid rgba(250, 204, 21, .85); border-radius: 1px; pointer-events: none; }
+  .card:hover .shot i { background: rgba(250, 204, 21, .5); }
+  #modal .zoombar { position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 6px;
+    background: rgba(15,23,42,.94); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); }
+  #modal .zoombar button { padding: 4px 10px; font-size: 15px; line-height: 1; }
+  #modal .zoombar span { font-size: 12px; min-width: 44px; text-align: center; }
+  #modalCap { color: var(--muted); font-size: 13px; max-width: 80vw; text-align: center; }
+  #modalLink { color: var(--accent); font-size: 13px; text-decoration: none; }
+
+  .actions { display: inline-flex; gap: 8px; margin-left: 8px; vertical-align: middle; }
+  .actions span { cursor: pointer; color: var(--muted); font-size: 14px; }
+  .actions span:hover { color: var(--accent); }
+  .empty { color: var(--muted); font-size: 14px; text-align: center; margin: 70px auto; max-width: 620px; line-height: 1.7; }
+  .warn { align-self: flex-start; background: #422006; border: 1px solid #a16207; color: #fed7aa;
+    padding: 10px 14px; border-radius: 10px; font-size: 13px; max-width: 900px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Installux ChatBot</h1>
+  <span class="badge">Docs <b id="docCount">0</b></span>
+  <span class="badge">Pages <b id="pageCount">0</b></span>
+  <span class="badge">Figures <b id="figCount">0</b></span>
+  <span class="badge">Parts <b id="partCount">0</b></span>
+  <span class="badge">Photos <b id="refImgCount">0</b></span>
+  <span class="badge" id="aiBadge"><span class="dot off"></span>AI offline</span>
+  <span class="badge" id="backendBadge" title="Which model writes the answers.">
+    Answers by
+    <select id="backend"></select>
+  </span>
+  <span class="badge" id="computeBadge" title="Where the local model runs. Indexing and image matching always use the CPU cores.">
+    Local on
+    <select id="compute">
+      <option value="gpu">GPU</option>
+      <option value="cpu">CPU</option>
+    </select>
+    <button class="mini" id="applyCompute" title="Restart the local model with this setting">Apply</button>
+  </span>
+  <span class="spacer"></span>
+  <button class="ghost" id="reindexBtn">Re-index</button>
+  <button class="ghost" id="exportBtn">Export figures (ZIP)</button>
+</header>
+
+<main id="chat">
+  <div class="empty" id="welcome">
+    Ask about the Installux catalogues — <b>COMETE 70TH</b>, <b>GALAXIE 32TH</b> and
+    <b>GALAXIE 45TH</b> (Lift &amp; Slide).<br>
+    Try <i>“glazing bead for 70TH”</i>, <i>“what is 10230A?”</i>,
+    <i>“punching tools rails”</i> or <i>“joint brosse”</i>.<br>
+    Matching pages, drawings and part photos appear under each answer.
+  </div>
+</main>
+
+<footer>
+  <div id="controls">
+    <button class="iconbtn" id="micBtn" title="Ask with your voice" hidden>&#127908;</button>
+    <button class="iconbtn" id="imgBtn" title="Find catalogue drawings and parts that look like a picture">&#128247;</button>
+    <input type="file" id="imgUpload" accept="image/*" hidden>
+    <label>Results <input type="number" id="maxPages" min="1" max="20" value="3"></label>
+    <label>Images <input type="number" id="maxImages" min="1" max="40" value="3"></label>
+    <span class="hint">…or just say “show me 3 images” / “5 results”</span>
+  </div>
+  <div class="askrow">
+    <input id="q" placeholder="Ask a question about the catalogues…" autocomplete="off">
+    <button id="askBtn">Ask</button>
+  </div>
+</footer>
+
+<div id="modal">
+  <div class="imgWrap">
+    <div id="modalStage"><img id="modalImg" alt=""><div id="modalMarks"></div></div>
+    <div class="zoombar">
+      <button class="ghost" data-zoom="-0.25" title="zoom out">&minus;</button>
+      <span id="zoomPct">100%</span>
+      <button class="ghost" data-zoom="0.25" title="zoom in">+</button>
+      <button class="ghost" data-zoom="reset" title="reset">reset</button>
+    </div>
+  </div>
+  <div id="modalCap"></div>
+  <a id="modalLink" href="#" download>Download image</a>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const chat = $('chat');
+let busy = false;
+
+/* ----------------------------------------------------------------- utils */
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* Minimal, safe markdown: escape first, then apply inline/block rules.
+   Tables are supported because the hosted models answer spec questions with them. */
+function md(src) {
+  if (!src) return '';
+  const lines = esc(src).split('\n');
+  const inline = t => t
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])_([^_]+)_(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  const cells = row => row.replace(/^\||\|$/g, '').split('|').map(c => inline(c.trim()));
+
+  let html = '', inList = false;
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // table: a header row followed by a |---|---| separator
+    if (line.startsWith('|') && /^\|[\s:|-]+\|$/.test((lines[i + 1] || '').trim())) {
+      closeList();
+      const head = cells(line);
+      let body = '';
+      i += 2;
+      for (; i < lines.length && lines[i].trim().startsWith('|'); i++) {
+        body += '<tr>' + cells(lines[i].trim()).map(c => `<td>${c}</td>`).join('') + '</tr>';
+      }
+      i--;
+      html += '<div class="tablewrap"><table><thead><tr>' +
+        head.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>' + body +
+        '</tbody></table></div>';
+      continue;
+    }
+
+    const li = line.match(/^(?:[-*+]|\d+\.)\s+(.*)$/);
+    if (li) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += '<li>' + inline(li[1]) + '</li>';
+      continue;
+    }
+    closeList();
+    if (!line) continue;
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) { const n = Math.min(h[1].length + 1, 4); html += `<h${n}>${inline(h[2])}</h${n}>`; }
+    else if (/^([-*_])\1{2,}$/.test(line)) html += '<hr>';
+    else html += '<p>' + inline(line) + '</p>';
+  }
+  closeList();
+  return html;
+}
+
+function looksFrench(t) {
+  return /\b(le|la|les|des|une|est|pour|avec|quelle?|joint|ouvrant|dormant|coulissant|levant)\b/i.test(t);
+}
+
+/* ------------------------------------------------------------------- TTS */
+function speak(text) {
+  if (!('speechSynthesis' in window) || !text) return;
+  if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = looksFrench(text) ? 'fr-FR' : 'en-US';
+  const voice = speechSynthesis.getVoices().find(v => v.lang.startsWith(u.lang.slice(0, 2)));
+  if (voice) u.voice = voice;
+  speechSynthesis.speak(u);
+}
+function stopSpeak() { if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+
+/* --------------------------------------------------------------- sharing
+   Three constraints shape this, all verified in the browser rather than assumed:
+
+   * `navigator.share` is absent on most desktop browsers, so the "OS share
+     sheet carrying the real file" path cannot be relied on.
+   * Opening a window only works while the click's *transient user activation*
+     is alive. Awaiting a fetch first spends it, and the popup is then blocked
+     silently — which is why the previous version appeared to do nothing.
+   * wa.me and mailto: carry text only. Neither can attach an image.
+
+   So: open the target synchronously, first thing in the handler, and deal with
+   the picture afterwards — clipboard if the browser allows it, otherwise a
+   download so the customer still has a file to attach.                        */
+const absUrl = u => new URL(u, location.href).href;
+
+/* Anchor click beats window.open: it is not treated as a popup. */
+function openExternal(href) {
+  const a = document.createElement('a');
+  a.href = href;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/* mailto must NOT open a tab, or the browser leaves a blank one behind. */
+function openMail(href) {
+  const a = document.createElement('a');
+  a.href = href;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function waShare(text) {
+  // Share text only - for images, use the share button on the image card
+  openExternal('https://wa.me/?text=' + encodeURIComponent(text || ''));
+}
+
+// New function: share image to WhatsApp via clipboard
+async function shareImageToWhatsApp(url, caption) {
+  // Use the server-side clipboard method (Windows only)
+  if (await copyImageServerSide(url)) {
+    pasteHint('wa');
+    return;
+  }
+  // Fall back to client-side methods
+  const file = _fileReady.get(url);
+  if (file && shareFilesNow([file], caption || 'Installux catalogue image')) {
+    pasteHint('wa');
+    return;
+  }
+  // Fall back to browser clipboard
+  const png = _pngReady.get(url);
+  if (png && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+      pasteHint('wa');
+      return;
+    } catch (e) { /* denied — fall through */ }
+  }
+  // Final fallback: show download and instructions
+  offerImage(url, caption).then(how => {
+    if (how === 'none') { open(''); toast('No image file available for this item'); return; }
+    const div = addMsg(
+      `Image copied to the clipboard. Open WhatsApp and press <b>Ctrl+V</b> to attach it.`,
+      'bot');
+    div.insertAdjacentHTML('beforeend',
+      `<div class="chips"><span class="chip" data-act="openWa"
+         data-caption="${encodeURIComponent(caption || '')}">Open WhatsApp</span></div>`);
+  });
+}
+
+function emailShare(text, subject) {
+  openMail('mailto:?subject=' + encodeURIComponent(subject || 'Installux catalogue result') +
+           '&body=' + encodeURIComponent(text || ''));
+}
+
+function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text)
+      .then(() => { toast('Copied to clipboard'); return true; },
+            () => fallbackCopy(text));
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+
+/* execCommand still works where the async clipboard is blocked by policy. */
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    toast(ok ? 'Copied to clipboard' : 'Could not copy — select the text manually');
+    return ok;
+  } catch (e) {
+    toast('Could not copy — select the text manually');
+    return false;
+  }
+}
+
+function downloadUrl(url, name) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name || (url.split('/').pop() || 'image');
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/* The clipboard only takes PNG reliably, and the part photos are JPEG. */
+async function toPngBlob(blob) {
+  if (blob.type === 'image/png') return blob;
+  const bmp = await createImageBitmap(blob);
+  const c = document.createElement('canvas');
+  c.width = bmp.width; c.height = bmp.height;
+  c.getContext('2d').drawImage(bmp, 0, 0);
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+
+/* A caption is not a filename: saving "PART 119312 GASKET" with no extension
+   gives the customer a file Windows cannot open. Keep the caption as a prefix
+   but always carry the real extension over from the URL. */
+function shareFileName(url, caption) {
+  const fromUrl = (url.split('/').pop() || 'image').split('?')[0];
+  const ext = (fromUrl.match(/\.[a-z0-9]{2,4}$/i) || ['.png'])[0];
+  const stem = (caption || fromUrl.replace(/\.[^.]*$/, ''))
+    // a caption often quotes the source file ("p008_fig00.png · …32th_en.pdf p.8"),
+    // and those inner extensions make an unreadable double-suffixed filename
+    .replace(/\.(png|jpe?g|gif|webp|bmp|pdf)\b/gi, '')
+    .replace(/[^\w.-]+/g, '_').replace(/_+/g, '_')
+    .replace(/^[_.]+|[_.]+$/g, '').slice(0, 60);
+  return (stem || 'installux') + ext;
+}
+
+/* Put the picture where the customer can attach it: clipboard first, and a
+   download when the browser refuses (clipboard-write is often denied). */
+async function offerImage(url, name) {
+  if (!url) return 'none';
+  try {
+    if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw 0;
+    const png = await toPngBlob(await (await fetch(url)).blob());
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+    return 'clipboard';
+  } catch (e) {
+    try { downloadUrl(url, shareFileName(url, name)); return 'download'; }
+    catch (e2) { return 'none'; }
+  }
+}
+
+async function copyImage(url, name) {
+  // the server can write the OS clipboard even when the page is refused
+  // permission, which is the usual case on desktop
+  if (await copyImageServerSide(url)) {
+    toast('Image copied — paste it into WhatsApp or your e-mail');
+    return true;
+  }
+  const how = await offerImage(url, name);
+  toast(how === 'clipboard' ? 'Image copied — paste it into WhatsApp or your e-mail'
+      : how === 'download' ? 'Clipboard blocked by the browser — image downloaded instead'
+      : 'No image on file for this item');
+  return how !== 'none';
+}
+
+/* ------------------------------------------------------- real attachments
+   wa.me and mailto: are text-only URLs — neither can ever carry a file. The
+   only way a web page hands an actual image to WhatsApp is the Web Share API
+   with a File, which routes through the OS share sheet to the WhatsApp app.
+
+   navigator.share() needs *transient user activation*: awaiting a fetch first
+   spends it and the call is rejected. So the file is fetched on pointerdown,
+   before the click lands, and the click handler reads it synchronously. */
+const MAX_SHARE_FILES = 10;       // more than this and the OS sheet balks
+const _fileReady = new Map();     // url -> File, once fetched
+const _pngReady = new Map();      // url -> PNG Blob, ready for the clipboard
+const _filePending = new Set();
+
+async function urlToFile(url, name) {
+  const blob = await (await fetch(url)).blob();
+  return new File([blob], shareFileName(url, name), { type: blob.type || 'image/png' });
+}
+
+/* Both forms are prepared ahead of the click: a File for the share sheet, and a
+   PNG Blob for the clipboard. The clipboard needs a *ready* Blob — passing it a
+   pending promise means the write lands after focus has moved to WhatsApp, and
+   Chrome rejects it. */
+function primeFile(url, name) {
+  if (!url || _filePending.has(url)) return;
+  if (_fileReady.has(url) && _pngReady.has(url)) return;
+  _filePending.add(url);
+  fetch(url)
+    .then(r => r.blob())
+    .then(async blob => {
+      _fileReady.set(url, new File([blob], shareFileName(url, name),
+                                   { type: blob.type || 'image/png' }));
+      try { _pngReady.set(url, await toPngBlob(blob)); } catch (e) { /* canvas refused */ }
+    })
+    .catch(() => {})
+    .finally(() => _filePending.delete(url));
+}
+
+function canShareFiles(files) {
+  return typeof navigator.share === 'function'
+      && typeof navigator.canShare === 'function'
+      && files.length > 0
+      && navigator.canShare({ files });
+}
+
+/* Share prepared files. Returns true if the sheet opened. Never awaits first. */
+function shareFilesNow(files, text, title) {
+  if (!canShareFiles(files)) return false;
+  try {
+    navigator.share({ files, text: text || '', title: title || 'Installux' })
+      .catch(() => {});          // user dismissed the sheet — nothing to report
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+const ATTACH_NOTE = {
+  // written before we know which route worked, because the message has to be
+  // composed while the click is still live
+  pending: '\n\n(the image is on your clipboard — press Ctrl+V; if that is blocked, '
+         + 'it was downloaded instead)',
+  clipboard: '\n\n(the image is on your clipboard — press Ctrl+V here)',
+  download: '\n\n(the image was downloaded — attach it from your Downloads folder)',
+  none: '',
+};
+
+/* Hand one image to WhatsApp / e-mail.
+
+   No WhatsApp URL can carry a file: wa.me and mailto: take text only. So the
+   image has to reach the other app by one of these, tried in order:
+     1. navigator.share() with a File — the OS sheet passes it straight to
+        WhatsApp. The cleanest route, but `navigator.share` is simply absent on
+        most desktop browsers, so it can never be the only path.
+     2. The *server* copying the file to the OS clipboard. The app runs on the
+        same machine as the browser, so it can reach the real clipboard even
+        when the page cannot: the browser's clipboard-write permission is
+        frequently denied outright, which is what made this button look broken.
+     3. The browser clipboard, where it happens to be allowed.
+     4. A download to attach by hand.                                        */
+async function copyImageServerSide(url) {
+  if (!url || !url.startsWith('/')) return false;
+  try {
+    const r = await fetch('/api/clipboard-image', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    return r.ok && (await r.json()).copied === true;
+  } catch (e) { return false; }
+}
+
+async function sendImage(url, caption, channel) {
+  const base = caption || 'Installux catalogue image';
+  const subject = base.slice(0, 78);
+  const open = note => channel === 'wa' ? waShare(base + note)
+                                        : emailShare(base + note, subject);
+
+  // 1. the real file, where the browser supports handing one over
+  const file = url ? _fileReady.get(url) : null;
+  if (file && shareFilesNow([file], base, subject)) return;
+
+  if (!url) { open(''); return; }
+
+  // 2. the server owns the OS clipboard and needs no browser permission
+  if (await copyImageServerSide(url)) {
+    open(ATTACH_NOTE.clipboard);
+    pasteHint(channel);
+    return;
+  }
+
+  // 3. browser clipboard, if this build happens to allow it
+  const png = _pngReady.get(url);
+  if (png && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+      open(ATTACH_NOTE.clipboard);
+      pasteHint(channel);
+      return;
+    } catch (e) { /* denied — fall through */ }
+  }
+
+  // 4. nothing could take the image: prepare it and offer an explicit button,
+  //    whose click is a fresh gesture so the popup is not blocked
+  offerImage(url, caption).then(how => {
+    if (how === 'none') { open(''); toast('No image file available for this item'); return; }
+    const where = channel === 'wa' ? 'WhatsApp' : 'your e-mail';
+    const div = addMsg(
+      how === 'clipboard'
+        ? `Image copied to the clipboard. Open ${esc(where)} and press <b>Ctrl+V</b>.`
+        : `The browser blocked the clipboard, so the image was downloaded. ` +
+          `Open ${esc(where)} and attach it.`,
+      'bot');
+    div.insertAdjacentHTML('beforeend',
+      `<div class="chips"><span class="chip" data-act="${channel === 'wa' ? 'openWa' : 'openMail'}"
+         data-caption="${esc(base)}">Open ${esc(where)}</span></div>`);
+  });
+}
+
+/* Say plainly what has to happen next — a toast disappears before the customer
+   has switched to the other window. */
+function pasteHint(channel) {
+  addMsg(`Image copied. In ${channel === 'wa' ? 'WhatsApp' : 'your e-mail'}, ` +
+         'press <b>Ctrl+V</b> to attach it to the message.', 'bot');
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'warn'; t.textContent = msg;
+  t.style.cssText += 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:60';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1800);
+}
+
+/* ----------------------------------------------------------------- modal */
+let zoomLevel = 1, pan = { x: 0, y: 0, dragging: false, sx: 0, sy: 0 };
+function applyTransform() {
+  $('modalStage').style.transform =
+    `translate(${pan.x}px, ${pan.y}px) scale(${zoomLevel})`;
+  $('zoomPct').textContent = Math.round(zoomLevel * 100) + '%';
+}
+function setZoom(z) {
+  zoomLevel = Math.min(Math.max(z, 0.5), 6);
+  if (zoomLevel <= 1) pan.x = pan.y = 0;
+  applyTransform();
+}
+function openModal(src, caption, marks) {
+  const layer = $('modalMarks');
+  layer.innerHTML = (marks || []).map(([x, y, w, h]) =>
+    `<i style="left:${x * 100}%;top:${y * 100}%;width:${w * 100}%;height:${h * 100}%"></i>`
+  ).join('');
+  $('modalImg').src = src;
+  $('modalImg').alt = caption || '';
+  $('modalCap').textContent = caption || '';
+  $('modalLink').href = src;
+  $('modalLink').download = (src.split('/').pop() || 'image');
+  pan = { x: 0, y: 0, dragging: false, sx: 0, sy: 0 };
+  setZoom(1);
+  $('modal').classList.add('open');
+}
+function closeModal() { $('modal').classList.remove('open'); stopSpeak(); }
+
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+$('modal').addEventListener('wheel', e => {
+  if (!$('modal').classList.contains('open')) return;
+  e.preventDefault(); setZoom(zoomLevel + (e.deltaY < 0 ? 0.2 : -0.2));
+}, { passive: false });
+document.querySelectorAll('#modal .zoombar button').forEach(b => {
+  b.addEventListener('click', e => {
+    e.stopPropagation();
+    const v = b.dataset.zoom;
+    if (v === 'reset') { pan.x = pan.y = 0; setZoom(1); } else setZoom(zoomLevel + parseFloat(v));
+  });
+});
+$('modalStage').addEventListener('mousedown', e => {
+  if (zoomLevel <= 1) return;
+  pan.dragging = true; pan.sx = e.clientX - pan.x; pan.sy = e.clientY - pan.y;
+  $('modalStage').style.cursor = 'grabbing'; e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if (!pan.dragging) return;
+  pan.x = e.clientX - pan.sx; pan.y = e.clientY - pan.sy; applyTransform();
+});
+document.addEventListener('mouseup', () => {
+  if (pan.dragging) { pan.dragging = false; $('modalStage').style.cursor = 'grab'; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (!$('modal').classList.contains('open')) return;
+  if (e.key === '+' || e.key === '=') setZoom(zoomLevel + 0.25);
+  if (e.key === '-') setZoom(zoomLevel - 0.25);
+  if (e.key === '0') { pan.x = pan.y = 0; setZoom(1); }
+});
+
+/* Cards and answer actions are wired by delegation, so captions containing
+   quotes or backslashes can never break a handler. */
+/* Actions are checked before cards, so tapping an icon never opens the modal. */
+/* Fetch the image before the click lands. navigator.share() must be called with
+   the click's activation still live, and awaiting a fetch inside the handler
+   spends it — so the work happens on hover and pointerdown instead. */
+function primeFromEvent(e) {
+  const act = e.target.closest('[data-act]');
+  if (!act) return;
+  const kind = act.dataset.act;
+  if (kind === 'waImg' || kind === 'mailImg' || kind === 'copyImg') {
+    primeFile(act.dataset.url, act.dataset.caption);
+  } else if (kind === 'waAll' || kind === 'mailAll') {
+    bundleUrls().slice(0, MAX_SHARE_FILES).forEach(([u, n]) => primeFile(u, n));
+  }
+}
+chat.addEventListener('pointerover', primeFromEvent);
+chat.addEventListener('pointerdown', primeFromEvent);
+
+chat.addEventListener('click', e => {
+  const act = e.target.closest('[data-act]');
+  if (act) {
+    e.stopPropagation();
+    const text = act.closest('.msg')?.dataset.text || '';
+    const url = act.dataset.url || '';
+    const caption = act.dataset.caption || '';
+    ({
+      speak: () => speak(text),
+      wa: () => waShare(text),
+      mail: () => emailShare(text, lastResult?.question
+                     ? `Installux — ${lastResult.question}` : undefined),
+      copy: () => copyText(text),
+      chip: () => { $('q').value = act.dataset.chip; ask(); },
+      copyImg: () => copyImage(url, caption),
+      openWa: () => waShare(caption || 'Installux catalogue image'),
+      openMail: () => emailShare(caption || 'Installux catalogue image',
+                                 (caption || 'Installux').slice(0, 78)),
+      copyTxt: () => copyText(caption),
+      waTxt: () => waShare(caption),
+      mailTxt: () => emailShare(caption, caption.slice(0, 78)),
+      waImg: () => sendImage(url, caption, 'wa'),
+      mailImg: () => sendImage(url, caption, 'mail'),
+      copyAll: () => copyText(bundleText()),
+      waAll: () => sendEverything('wa'),
+      mailAll: () => sendEverything('mail'),
+      zipAll: () => downloadBundle(),
+    }[act.dataset.act] || (() => {}))();
+    return;
+  }
+  const card = e.target.closest('[data-full]');
+  if (card && card.dataset.full) {
+    let marks = [];
+    try { marks = JSON.parse(card.dataset.marks || '[]'); } catch (err) { marks = []; }
+    openModal(card.dataset.full, card.dataset.caption || '', marks);
+  }
+});
+
+/* ------------------------------------------------- send the whole answer */
+let lastResult = null;
+
+function bundleText() {
+  const d = lastResult;
+  if (!d) return '';
+  const out = [`Installux — ${d.question}`, ''];
+  if (d.answer) out.push(d.answer.replace(/\*\*/g, ''), '');
+  if (d.parts?.length) {
+    out.push('PARTS & ACCESSORIES');
+    d.parts.forEach(p => out.push(
+      `  ${p.ref} (${p.kind}) — ${p.designation || 'no description on file'}`));
+    out.push('');
+  }
+  if (d.pages?.length) {
+    out.push('SOURCE PAGES');
+    d.pages.forEach(p => out.push(
+      `  ${p.system} · ${p.filename.split(/[\\/]/).pop()} · p.${p.page_num} (${p.doc_kind})`));
+    out.push('');
+  }
+  if (d.images?.length) out.push(`${d.images.length} drawing(s)/photo(s) attached.`);
+  return out.join('\n');
+}
+
+function bundleUrls() {
+  const d = lastResult;
+  if (!d) return [];
+  return [
+    ...(d.pages || []).map(p => ['/media/' + p.page_image, `page-${p.page_num}`]),
+    ...(d.images || []).map((i, n) => [i.url || i.image_url, `drawing-${n + 1}`]),
+    ...(d.parts || []).filter(p => p.photo).map(p => [p.photo, `part-${p.ref}`]),
+  ];
+}
+
+async function downloadBundle() {
+  if (!lastResult) return;
+  toast('Building the ZIP…');
+  const r = await fetch('/api/bundle', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      question: lastResult.question, answer: lastResult.answer || '',
+      max_pages: (lastResult.pages || []).length || 4,
+      max_images: (lastResult.images || []).length || 8,
+    }),
+  });
+  if (!r.ok) { toast('Could not build the ZIP'); return; }
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (lastResult.question.replace(/[^\w]+/g, '-').slice(0, 48) || 'installux') + '.zip';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  return blob;
+}
+
+/* Same rule as sendImage: hand over the real files when the browser can, and
+   otherwise open the target while the click is still "live", then build a ZIP.
+   Doing the ZIP first blocked the popup every time. */
+async function sendEverything(channel) {
+  const text = bundleText();
+  if (!text) return;
+  const urls = bundleUrls().slice(0, MAX_SHARE_FILES);
+
+  // best path: every image goes across as an attachment
+  const files = urls.map(([u]) => _fileReady.get(u)).filter(Boolean);
+  if (files.length === urls.length && files.length &&
+      shareFilesNow(files, text, `Installux — ${lastResult.question}`.slice(0, 78))) {
+    return;
+  }
+
+  // exactly one image: the clipboard carries it, no ZIP to attach by hand
+  if (urls.length === 1 && await copyImageServerSide(urls[0][0])) {
+    if (channel === 'wa') waShare(text + ATTACH_NOTE.clipboard);
+    else emailShare(text + ATTACH_NOTE.clipboard,
+                    `Installux — ${lastResult.question}`.slice(0, 78));
+    pasteHint(channel);
+    return;
+  }
+
+  const note = urls.length
+    ? `\n\n(${urls.length} page(s), drawing(s) and photo(s) are downloading as a ZIP — ` +
+      'attach it to this message)'
+    : '';
+  if (channel === 'wa') waShare(text + note);
+  else emailShare(text + note, `Installux — ${lastResult.question}`.slice(0, 78));
+  if (urls.length) downloadBundle();
+}
+
+/* -------------------------------------------------------------- renderers */
+function addMsg(html, cls, meta, withActions, rawText) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.innerHTML = html;
+  if (withActions) {
+    // Share the answer as it was written. textContent welds block elements
+    // together ("...COMETE 70THThe COMETE 70TH accepts..."), so the rendered
+    // DOM is only a fallback when no source text was handed in.
+    div.dataset.text = (rawText || blockText(div)).trim();
+    div.insertAdjacentHTML('beforeend',
+      '<span class="actions">' +
+      '<span data-act="speak" title="Read aloud">&#128266;</span>' +
+      '<span data-act="copy" title="Copy">&#128203;</span>' +
+      '<span data-act="wa" title="Share on WhatsApp">&#128241;</span>' +
+      '<span data-act="mail" title="Share by e-mail">&#128231;</span></span>');
+  }
+  if (meta) div.insertAdjacentHTML('beforeend', `<div class="meta">${esc(meta)}</div>`);
+  chat.appendChild(div);
+  scrollDown();
+  return div;
+}
+
+/* textContent with the line breaks the block layout implies. */
+function blockText(root) {
+  const BLOCK = /^(P|DIV|LI|H1|H2|H3|H4|TR|BR|HR|UL|OL|TABLE|SECTION)$/;
+  const NL = '\n';
+  let out = '';
+  (function walk(node) {
+    for (const n of node.childNodes) {
+      if (n.nodeType === 3) { out += n.nodeValue; continue; }
+      if (n.nodeType !== 1) continue;
+      if (n.classList && (n.classList.contains('actions') || n.classList.contains('meta')))
+        continue;                       // share icons and the footnote are chrome
+      const block = BLOCK.test(n.tagName);
+      if (block && out && !out.endsWith(NL)) out += NL;
+      if (n.tagName === 'TD' || n.tagName === 'TH') out += ' | ';
+      walk(n);
+      if (block && !out.endsWith(NL)) out += NL;
+    }
+  })(root);
+  return out.replace(/\n{3,}/g, NL + NL);
+}
+
+function addSection(title, innerHTML) {
+  const s = document.createElement('section');
+  s.innerHTML = `<h3>${esc(title)}</h3>${innerHTML}`;
+  chat.appendChild(s);
+  scrollDown();
+  return s;
+}
+
+function scrollDown() { chat.scrollTop = chat.scrollHeight; }
+
+/* copy / WhatsApp / e-mail strip shown on every page, drawing and part card */
+function cardActs(url, caption) {
+  return `<div class="cardacts">
+    <span data-act="copyImg" data-url="${esc(url)}" data-caption="${esc(caption)}"
+          title="Copy image to clipboard">&#128203;</span>
+    <span data-act="waImg" data-url="${esc(url)}" data-caption="${esc(caption)}"
+          title="Send to WhatsApp">&#128241;</span>
+    <span data-act="mailImg" data-url="${esc(url)}" data-caption="${esc(caption)}"
+          title="Send by e-mail">&#9993;</span>
+  </div>`;
+}
+
+/* Wrap the searched-for words so the snippet shows why this page matched.
+   Runs after escaping, so the inserted tags are the only markup present;
+   entity names are skipped so a term like "amp" cannot corrupt "&amp;". */
+const ENTITY_WORDS = new Set(['amp', 'lt', 'gt', 'quot', 'apos']);
+function markTerms(text, terms) {
+  const words = [...new Set((terms || []).filter(t => t.length > 2 && !ENTITY_WORDS.has(t)))]
+    .sort((a, b) => b.length - a.length)
+    .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!words.length) return esc(text);
+  return esc(text).replace(new RegExp('(' + words.join('|') + ')', 'gi'), '<mark>$1</mark>');
+}
+
+
+/* Absolute-positioned overlay boxes, sized in % of the thumbnail. */
+function markBoxes(marks) {
+  return (marks || []).map(([x, y, w, h]) =>
+    `<i style="left:${(x * 100).toFixed(3)}%;top:${(y * 100).toFixed(3)}%;` +
+    `width:${(w * 100).toFixed(3)}%;height:${(h * 100).toFixed(3)}%"></i>`).join('');
+}
+
+function pageCards(pages, terms) {
+  return `<div class="hits">${pages.map(p => {
+    const name = p.filename.split(/[\\/]/).pop();
+    const cap = `${p.system} — ${name} — page ${p.page_num}`;
+    const marks = p.highlights || [];
+    return `<div class="card" data-full="/media/${esc(p.page_image)}" data-caption="${esc(cap)}"
+      data-marks="${esc(JSON.stringify(marks))}">
+      <span class="shot"><img src="/media/${esc(p.thumb)}" loading="lazy" alt="page ${p.page_num}">${
+        markBoxes(marks)}</span>
+      <div class="cmeta"><b>${esc(name)} — p.${p.page_num}</b>
+        <span>${esc((p.systems || [p.system]).join(' / '))} · ${esc(p.doc_kind)}</span>
+        <span class="snippet">${markTerms(p.snippet, terms)}</span>
+        <span class="tag">match ${p.score}%</span>${
+          marks.length ? `<span class="tag good">${marks.length} highlighted</span>` : ''}${
+          p.has_ocr ? '<span class="tag">OCR</span>' : ''}</div>
+      ${cardActs('/media/' + p.page_image, cap)}</div>`;
+  }).join('')}</div>`;
+}
+
+function figureCards(imgs, terms) {
+  return `<div class="imgs">${imgs.map(i => {
+    const url = i.image_url || i.url;
+    const thumb = i.thumb_url || url;
+    const title = i.kind === 'part' && i.ref ? 'PART ' + i.ref : (i.filename || 'figure');
+    const sub = i.doc ? `${i.doc} — p.${i.page_num}` :
+      (i.kind === 'part' ? 'reference part photo' : (i.system || ''));
+    // when geometry decided the ranking, say so — a "% similar" badge would
+    // look out of order next to a list sorted by keypoint evidence
+    const sim = i.inliers != null
+      ? `<span class="tag${i.match ? ' good' : ''}">${i.inliers} keypoint matches</span>`
+      : (i.similarity != null
+         ? `<span class="tag${i.match ? ' good' : ''}">${i.similarity}% similar</span>` : '');
+    // a drawing inherits the keyword boxes of the page region it was cut from
+    const marks = i.highlights || [];
+    return `<div class="card" data-full="${esc(url)}" data-caption="${esc(title + ' · ' + sub)}"
+      data-marks="${esc(JSON.stringify(marks))}">
+      <span class="shot"><img src="${esc(thumb)}" loading="lazy" alt="${esc(title)}">${
+        markBoxes(marks)}</span>
+      <div class="cmeta"><b>${markTerms(title, terms)}</b>
+        <span>${markTerms(sub, terms)}</span>${sim}${
+        marks.length ? `<span class="tag good">${marks.length} highlighted</span>` : ''}</div>
+      ${cardActs(url, title + (sub ? ' · ' + sub : ''))}</div>`;
+  }).join('')}</div>`;
+}
+
+function partCards(parts, terms) {
+  return `<div class="imgs">${parts.map(p => {
+    const caption = `PART ${p.ref}${p.designation ? ' — ' + p.designation : ''}`;
+    // keep every card the same shape: a photo-less part gets a reference plate,
+    // and offers "copy details" rather than three dead image actions
+    const tags = `<span class="tag">${esc(p.kind)}</span>` +
+      (p.supplier_ref ? `<span class="tag">supplier ${esc(p.supplier_ref)}</span>` : '');
+    // A part with no photo used to reserve an empty 130px plate; it now becomes a
+    // compact reference card so the description is the content, not the filler.
+    if (!p.photo) {
+      return `<div class="card nophoto">
+        <div class="cmeta">
+          <b>PART ${markTerms(p.ref, terms)}</b>
+          <span class="desc">${p.designation
+            ? markTerms(p.designation, terms)
+            : '<em>no description in the workbook</em>'}</span>
+          ${tags}</div>
+        <div class="cardacts">
+          <span data-act="copyTxt" data-caption="${esc(caption)}" title="Copy details">&#128203;</span>
+          <span data-act="waTxt" data-caption="${esc(caption)}" title="Send to WhatsApp">&#128241;</span>
+          <span data-act="mailTxt" data-caption="${esc(caption)}" title="Send by e-mail">&#9993;</span>
+        </div></div>`;
+    }
+    return `<div class="card" data-full="${esc(p.photo)}" data-caption="${esc(caption)}">
+      <img src="${esc(p.photo)}" loading="lazy" alt="part ${esc(p.ref)}">
+      <div class="cmeta"><b>PART ${markTerms(p.ref, terms)}</b>
+        <span class="desc">${p.designation
+          ? markTerms(p.designation, terms)
+          : '<em>no description in the workbook</em>'}</span>
+        ${tags}</div>
+      ${cardActs(p.photo, caption)}</div>`;
+  }).join('')}</div>`;
+}
+
+function chipRow(list) {
+  return '<div class="chips">' + list.map(q =>
+    `<span class="chip" data-act="chip" data-chip="${esc(q)}">${esc(q)}</span>`).join('') + '</div>';
+}
+
+/* ---------------------------------------------------------------- status */
+async function loadStatus() {
+  try {
+    const s = await (await fetch('/api/status')).json();
+    $('docCount').textContent = s.indexed_docs.length;
+    $('pageCount').textContent = s.total_pages;
+    $('figCount').textContent = s.total_figures || 0;
+    $('partCount').textContent = s.total_parts || 0;
+    $('refImgCount').textContent = s.total_ref_images || 0;
+    const badge = $('aiBadge');
+    if (s.reindexing) {
+      badge.innerHTML = '<span class="dot busy"></span>Indexing…';
+    } else {
+      const model = (s.ai_model || 'local').split(/[\\/]/).pop();
+      badge.innerHTML = `<span class="dot ${s.ai_online ? 'on' : 'off'}"></span>` +
+        (s.ai_online ? 'AI online · ' + esc(model) : 'AI offline — keyword results only');
+    }
+    $('reindexBtn').disabled = !!s.reindexing;
+    $('reindexBtn').textContent = s.reindexing ? 'Indexing…' : 'Re-index';
+    if (document.activeElement !== $('compute')) $('compute').value = s.compute || 'gpu';
+    for (const [id, key] of [['maxPages', 'default_pages'], ['maxImages', 'default_images']]) {
+      const el = $(id);
+      if (s[key] && !el.dataset.seeded) { el.value = s[key]; el.dataset.seeded = '1'; }
+    }
+    const sel = $('backend');
+    const sig = (s.backend_options || []).map(o => o.name + o.ready).join('|');
+    if (sel.dataset.sig !== sig) {
+      sel.dataset.sig = sig;
+      sel.innerHTML = (s.backend_options || []).map(o =>
+        `<option value="${esc(o.name)}"${o.ready ? '' : ' disabled'}>` +
+        `${esc(o.label)}${o.ready ? '' : ' — unavailable'}</option>`).join('');
+    }
+    if (document.activeElement !== sel) sel.value = s.backend;
+    const isLocal = s.backend_kind === 'local';
+    $('computeBadge').classList.toggle('dim', !isLocal);
+    const ms = s.model_server || {};
+    $('computeBadge').title = !isLocal
+      ? 'Only applies to the local Qwen model — switch “Answers by” to it first.'
+      : !ms.online
+      ? 'The model server is not running — press Apply to start it.'
+      : ms.managed
+        ? `Model server started by this app on ${(ms.running_compute || '?').toUpperCase()}.`
+        : `Port ${ms.port} is held by an external “${ms.external_name || 'process'}”` +
+          ` (pid ${ms.external_pid}). Press Apply to restart it with this setting.`;
+    $('applyCompute').disabled = !ms.can_start && !ms.online;
+  } catch (e) { /* server restarting */ }
+}
+
+/* --------------------------------------------------------------- actions */
+$('reindexBtn').addEventListener('click', async () => {
+  $('reindexBtn').disabled = true;
+  const d = await (await fetch('/api/reindex', { method: 'POST' })).json();
+  if (!d.started) { toast(d.message || 'Already running'); return; }
+  addMsg('Re-indexing the catalogues — this takes a couple of minutes.', 'bot');
+  const poll = setInterval(async () => {
+    const s = await (await fetch('/api/reindex-status')).json();
+    if (s.running) return;
+    clearInterval(poll);
+    loadStatus();
+    if (s.error) addMsg('Re-index failed: ' + esc(s.error), 'bot');
+    else if (s.result) addMsg(`Re-index complete — ${s.result.documents} documents, ` +
+      `${s.result.pages} pages, ${s.result.figures} figures, ${s.result.parts} parts.`, 'bot');
+  }, 2000);
+});
+
+$('backend').addEventListener('change', async () => {
+  const name = $('backend').value;
+  const label = $('backend').selectedOptions[0]?.textContent || name;
+  $('backend').disabled = true;
+  const note = addMsg(`Switching answers to ${esc(label)}…`, 'bot');
+  try {
+    const d = await (await fetch('/api/settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ backend: name }),
+    })).json();
+    note.remove();
+    if (d.error) addMsg('⚠ ' + esc(d.error), 'bot');
+    else addMsg(esc(d.message.charAt(0).toUpperCase() + d.message.slice(1)) + '.', 'bot');
+  } catch (e) {
+    note.remove();
+    addMsg('Could not switch model: ' + esc(e.message || e), 'bot');
+  } finally {
+    $('backend').disabled = false;
+    loadStatus();
+  }
+});
+
+$('applyCompute').addEventListener('click', async () => {
+  const mode = $('compute').value;
+  $('applyCompute').disabled = true;
+  const note = addMsg(`Switching the answer model to ${mode.toUpperCase()} — ` +
+    'stopping the current server and reloading the weights…', 'bot');
+  try {
+    const d = await (await fetch('/api/settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ compute: mode, restart_model: true }),
+    })).json();
+    note.remove();
+    addMsg(esc(d.message.charAt(0).toUpperCase() + d.message.slice(1)) + '.', 'bot');
+  } catch (e) {
+    note.remove();
+    addMsg('Could not switch compute mode: ' + esc(e.message || e), 'bot');
+  } finally {
+    $('applyCompute').disabled = false;
+    loadStatus();
+  }
+});
+
+$('exportBtn').addEventListener('click', () => {
+  const f = document.createElement('form');
+  f.method = 'POST'; f.action = '/api/export-images';
+  document.body.appendChild(f); f.submit(); f.remove();
+});
+
+$('imgBtn').addEventListener('click', () => $('imgUpload').click());
+$('imgUpload').addEventListener('change', async ev => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  $('welcome').style.display = 'none';
+  addMsg('Find catalogue items matching: ' + esc(file.name), 'user');
+  const typing = addMsg('Comparing against every drawing and part photo…', 'bot');
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const r = await fetch('/api/find-by-image', { method: 'POST', body: form });
+    const d = await r.json();
+    typing.remove();
+    if (d.error) { addMsg(esc(d.error), 'bot'); return; }
+    const results = d.results || [];
+    if (!results.length) { addMsg('No similar images found in the indexed catalogues.', 'bot'); return; }
+    const strong = results.filter(x => x.match).length;
+    const verified = results.some(x => x.inliers != null);
+    addMsg(strong
+      ? `Found ${strong} confirmed match${strong > 1 ? 'es' : ''}` +
+        (verified ? ' (geometrically verified), then the next nearest:'
+                  : ', then the next nearest:')
+      : 'No confirmed match. These are the nearest images:', 'bot');
+    lastResult = { question: 'Image search: ' + file.name, answer: '',
+                   pages: [], parts: [], images: results };
+    addSection('Visual matches', figureCards(results, []));
+    const bar = document.createElement('div');
+    bar.className = 'bulkbar';
+    bar.innerHTML = '<span class="lbl">Send everything —</span>' +
+      '<button class="ghost" data-act="copyAll">&#128203; Copy all</button>' +
+      '<button class="ghost" data-act="waAll">&#128241; WhatsApp</button>' +
+      '<button class="ghost" data-act="mailAll">&#9993; E-mail</button>';
+    chat.appendChild(bar);
+  } catch (e) {
+    typing.remove();
+    addMsg('Upload failed: ' + esc(e.message || e), 'bot');
+  } finally { ev.target.value = ''; }
+});
+
+/* ----------------------------------------------------------------- voice */
+let recognition = null;
+function initVoice() {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Rec) return;
+  $('micBtn').hidden = false;
+  $('micBtn').addEventListener('click', () => {
+    if (!recognition) {
+      recognition = new Rec();
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      recognition.onresult = e => {
+        const t = e.results[e.results.length - 1][0].transcript.trim();
+        if (t) { $('q').value = t; ask(); }
+      };
+      recognition.onerror = () => $('micBtn').classList.remove('rec');
+      recognition.onend = () => $('micBtn').classList.remove('rec');
+    }
+    recognition.lang = looksFrench($('q').value) ? 'fr-FR' : 'en-US';
+    try { recognition.start(); $('micBtn').classList.add('rec'); } catch (e) { /* already live */ }
+  });
+}
+
+/* ------------------------------------------------------------------- ask */
+async function ask() {
+  const q = $('q').value.trim();
+  if (!q || busy) return;
+  busy = true;
+  $('askBtn').disabled = true;
+  $('welcome').style.display = 'none';
+  addMsg(esc(q), 'user');
+  $('q').value = '';
+  const typing = addMsg('Searching the catalogues…', 'bot');
+  try {
+    const r = await fetch('/api/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: q,
+        max_pages: Math.max(1, +$('maxPages').value || 3),
+        max_images: Math.max(1, +$('maxImages').value || 3),
+      }),
+    });
+    const d = await r.json();
+    lastResult = d;
+    typing.remove();
+    if (d.error && !d.answer) { addMsg('⚠ ' + esc(d.error), 'bot'); return; }
+
+    if (d.clarify) {
+      addMsg(md(d.answer), 'bot');
+      if (d.suggestions?.length) addMsg('<b>Pick one to continue</b>' + chipRow(d.suggestions), 'bot');
+    } else {
+      const by = d.answered_by || 'the AI model';
+      const meta = d.from_cache ? `Reused from a recent identical search · ${by} (cached)`
+        : d.ai_used ? `Answered by ${by} · grounded in ${d.pages.length} page(s)`
+        : 'Catalogue evidence — no AI model is available right now';
+      addMsg(md(d.answer), 'bot', meta, true, d.answer);
+    }
+    if (d.pages?.length) addSection('Pages', pageCards(d.pages, d.terms));
+    // Cards are for parts there is something to look at. Matching references
+    // with no photo on file (55% of the workbook) would otherwise be blank
+    // plates, so they become one compact line instead of a row of empty cards.
+    if (d.parts?.length || d.parts_without_photo?.length) {
+      const grid = d.parts?.length ? partCards(d.parts, d.terms) : '';
+      const rest = (d.parts_without_photo || [])
+        .map(p => `<span class="reftag" data-act="chip" data-chip="${esc(p.ref)}"
+                     title="${esc(p.designation || '')} — click to look it up"
+                     >${markTerms(p.ref, d.terms)}<i>${
+                       markTerms(p.designation || 'no description', d.terms)}</i></span>`)
+        .join('');
+      addSection('Parts & accessories', grid +
+        (rest ? `<div class="reflist"><span class="lbl">Also referenced, no photo on file:</span>${rest}</div>` : ''));
+    }
+    if (d.images?.length) addSection('Drawings & images', figureCards(d.images, d.terms));
+    if (d.pages?.length || d.images?.length || d.parts?.length) {
+      const bar = document.createElement('div');
+      bar.className = 'bulkbar';
+      bar.innerHTML =
+        '<span class="lbl">Send everything —</span>' +
+        '<button class="ghost" data-act="copyAll">&#128203; Copy all</button>' +
+        '<button class="ghost" data-act="waAll">&#128241; WhatsApp</button>' +
+        '<button class="ghost" data-act="mailAll">&#9993; E-mail</button>' +
+        '<button class="ghost" data-act="zipAll">&#11015; ZIP</button>';
+      chat.appendChild(bar);
+    }
+    scrollDown();
+  } catch (e) {
+    typing.remove();
+    addMsg('Request failed: ' + esc(e.message || e), 'bot');
+  } finally {
+    busy = false;
+    $('askBtn').disabled = false;
+    $('q').focus();
+  }
+}
+
+$('askBtn').addEventListener('click', ask);
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+
+initVoice();
+loadStatus();
+setInterval(loadStatus, 15000);
+$('q').focus();
+</script>
+</body>
+</html>
