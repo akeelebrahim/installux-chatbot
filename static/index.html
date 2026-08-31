@@ -155,7 +155,7 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
 <body>
 <header>
   <button id="sidebarToggle" title="Toggle sidebar" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);width:32px;height:32px;border-radius:6px;display:grid;place-items:center;cursor:pointer;font-size:14px">☰</button>
-  <div class="logo" onclick="location.href='/'"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;padding:2px"><span data-i18n="brand">INSTALLUX ChatBot</span></div>
+  <div class="logo" onclick="location.href='/'"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;padding:2px"><span data-i18n="brand">INSTALLUX ChatBot</span><span style="font-size:10px;opacity:.7;margin-left:4px">v3</span></div>
   <button id="toTopBtn" title="Back to top — scroll to search" style="margin-left:6px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:16px;line-height:1">↑</button>
   <span class="spacer"></span>
   <button id="langToggle" title="Switch language">EN / عربي</button>
@@ -852,7 +852,7 @@ function renderHistory(){
 $('askBtn').addEventListener('click',ask);
 $('q').addEventListener('keydown',e=>{if(e.key==='Enter') ask();});
 initVoice(); loadStatus(); setInterval(loadStatus,15000); renderHistory(); renderFavs(); $('q').focus();
-if('serviceWorker' in navigator){ window.addEventListener('load',()=> navigator.serviceWorker.register('/sw.js').catch(()=>{})); }
+if('serviceWorker' in navigator){ window.addEventListener('load',()=> navigator.serviceWorker.register('/sw.js?v=3').then(r=>r.update()).catch(()=>{})); }
 </script>
 </body>
 </html>
