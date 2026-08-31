@@ -26,6 +26,7 @@ header nav a.active,header nav a:hover{background:rgba(255,255,255,.12);color:#f
 button{font-family:inherit}
 button.mini{padding:3px 8px;font-size:11px;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer}
 button.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2)}
+body[dir="rtl"] #settingsPanel{right:auto !important;left:0 !important}
 .sysbar{background:#fff;border-bottom:1px solid var(--line);display:flex;gap:8px;padding:10px 16px;overflow:auto;align-items:center}
 .pill{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer;white-space:nowrap}
 .pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -67,6 +68,7 @@ button.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(2
   .card{width:100%}
   .hits,.imgs{gap:8px}
   .spacer{display:none}
+  .mobile-only{display:flex !important}
 }
 .layout.collapsed{grid-template-columns:64px 1fr}
 .side{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;height:fit-content;position:sticky;top:78px;overflow:auto;max-height:calc(100vh - 90px);transition:all .22s ease}
@@ -159,10 +161,11 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
 <body>
 <header>
   <button id="sidebarToggle" title="Toggle sidebar" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);width:32px;height:32px;border-radius:6px;display:grid;place-items:center;cursor:pointer;font-size:14px">☰</button>
-  <div class="logo" onclick="location.href='/'"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;padding:2px"><span data-i18n="brand">INSTALLUX ChatBot</span><span style="font-size:10px;opacity:.7;margin-left:4px">v4</span></div>
+  <div class="logo" onclick="location.href='/'"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;padding:2px"><span data-i18n="brand">INSTALLUX ChatBot</span><span style="font-size:10px;opacity:.7;margin-left:4px">v5</span></div>
   <button id="toTopBtn" title="Back to top — scroll to search" style="margin-left:6px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:16px;line-height:1">↑</button>
   <span class="spacer"></span>
   <button id="langToggle" title="Switch language">EN / عربي</button>
+  <button id="installBtn" style="display:none;background:#fff;color:var(--blue);border:none;padding:6px 12px;border-radius:999px;font-weight:600;cursor:pointer;font-size:12px">⬇ Install</button>
   <div style="position:relative">
     <button class="ghost" id="settingsBtn" title="Settings">⚙ <span data-i18n="settings">Settings</span></button>
     <div id="settingsPanel" style="display:none;position:absolute;right:0;top:34px;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:30">
@@ -173,7 +176,6 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
       <div id="partRow2" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="parts">Parts</span> <b id="partCount2">0</b></div>
       <div style="font-size:12px;color:var(--muted);margin:6px 0" id="aiBadge2"><span class="dot off"></span><span data-i18n="ai_offline">AI offline</span></div>
       <label style="font-size:12px;display:flex;align-items:center;gap:6px;margin:8px 0"><span data-i18n="answers_by">Answers by</span> <select id="backend2" style="flex:1;padding:4px;border:1px solid var(--line);border-radius:6px"></select></label>
-      <div style="display:flex;gap:6px;margin-top:8px"><button class="btn ghost2" id="reindexBtn2" style="flex:1" data-i18n="reindex">Re-index</button><button class="btn ghost2" id="exportBtn2" style="flex:1">ZIP</button></div>
       <div style="margin-top:8px"><input type="file" id="pdfUpload2" accept=".pdf" style="display:none"><button class="btn ghost2" id="uploadBtn2" style="width:100%">Upload PDF</button><div id="uploadStatus2" style="font-size:11px;color:var(--muted);margin-top:4px"></div></div>
       <div style="margin-top:8px;display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--muted)">Local on</span><select id="compute2" style="padding:3px;border:1px solid var(--line);border-radius:6px"><option value="gpu">GPU</option><option value="cpu">CPU</option></select><button class="mini" id="applyCompute2">Apply</button></div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="clearBeforeSearch" checked> <span data-i18n="clear_before">Clear previous results before new search</span></label></div>
@@ -209,8 +211,6 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
   </aside>
   <div style="flex:1;display:flex;flex-direction:column;overflow:auto">
     <div class="hero">
-      <h1 data-i18n="hero_title">Ask about Installux catalogues</h1>
-      <p data-i18n="hero_sub">Q&A + image search first — ask in English or Arabic, or upload a photo</p>
       <div class="searchrow" style="position:relative">
         <input id="q" data-i18n-placeholder="placeholder" placeholder="Ask in English or Arabic — e.g. 5051 / ما هو 560032؟" autocomplete="off">
         <button class="iconbtn" id="micBtn" title="Voice search" hidden>🎙️</button>
@@ -228,10 +228,14 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
         </div>
         <button class="iconbtn" id="refreshChips" title="Refresh suggestions">↻</button>
       </div>
-      <div class="footer-controls" style="margin-top:6px">
-        <label><span data-i18n="images">Images</span> <input type="number" id="maxImages" min="1" max="40" value="3"></label>
-        <span class="hint" data-i18n="hint">…or say “show me 3 images” / “اعرض 3 صور”</span>
+    </div>
+    <div class="mobile-only" style="display:none;flex-direction:column;gap:8px;padding:0 10px 10px">
+      <div style="display:flex;gap:8px">
+        <button class="side-dropdown-btn" id="mobileRecentToggle" style="flex:1;display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;border:1px solid var(--line);border-radius:8px;font-size:12px;cursor:pointer"><span data-i18n="recent">Recent</span> <span><span id="mobileRecentCount" style="background:var(--blue);color:#fff;padding:2px 6px;border-radius:999px;font-size:11px">0</span> ▼</span></button>
+        <button class="side-dropdown-btn" id="mobileFavToggle" style="flex:1;display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;border:1px solid var(--line);border-radius:8px;font-size:12px;cursor:pointer"><span data-i18n="favorites">Favorites</span> <span><span id="mobileFavCount" style="background:var(--blue);color:#fff;padding:2px 6px;border-radius:999px;font-size:11px">0</span> ▼</span></button>
       </div>
+      <div id="mobileRecentList" style="display:none;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px"></div>
+      <div id="mobileFavList" style="display:none;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px"></div>
     </div>
     <div style="padding:16px;flex:1;overflow:auto">
       <main class="main" id="chat" style="overflow:visible">
@@ -450,6 +454,12 @@ async function sendEverything(channel){ const text=bundleText(); if(!text) retur
 /* renderers */
 function addMsg(html,cls,meta,withActions,rawText){
   const div=document.createElement('div'); div.className='msg '+cls; div.innerHTML=html;
+  const isAr = looksArabic(rawText||html);
+  div.dir = isAr ? 'rtl' : 'ltr';
+  div.style.textAlign = isAr ? 'right' : 'left';
+  // keep bot/user alignment per content, not page dir
+  if(cls==='bot') div.style.alignSelf = isAr ? 'flex-end' : 'flex-start';
+  if(cls==='user') div.style.alignSelf = isAr ? 'flex-start' : 'flex-end';
   if(withActions){ div.dataset.text=(rawText||blockText(div)).trim(); div.insertAdjacentHTML('beforeend','<span class="actions"><span data-act="speak" title="Read aloud">🔊</span><span data-act="copy" title="Copy">📋 Copy</span></span>'); }
   if(meta) div.insertAdjacentHTML('beforeend',`<div class="meta">${esc(meta)}</div>`);
   chat.appendChild(div); scrollDown(); return div;
@@ -688,17 +698,24 @@ function toggleFav(caption,url){
   renderFavs();
 }
 function renderFavs(){
-  const list=$('favList');
+  const list=$('favList'); const mlist=$('mobileFavList');
   const favs=getFavs();
   const cnt=document.getElementById('favCount'); if(cnt) cnt.textContent=favs.length;
-  if(!favs.length){ list.innerHTML=`<a style="display:block;padding:6px;color:#94A3B8">${currentLang==='ar'?'لا توجد مفضلة':'No favorites yet'}</a>`; return; }
-  list.innerHTML=favs.map(f=>`<a data-act="chip" data-chip="${esc(f.caption||f.key)}" title="${esc(f.caption)}" style="display:block;padding:6px;border-radius:6px;font-size:13px;color:#334155;text-decoration:none;cursor:pointer">⭐ ${esc((f.caption||'').slice(0,30))}</a>`).join('');
+  const mcnt=document.getElementById('mobileFavCount'); if(mcnt) mcnt.textContent=favs.length;
+  const html=!favs.length?`<a style="display:block;padding:6px;color:#94A3B8">${currentLang==='ar'?'لا توجد مفضلة':'No favorites yet'}</a>`:favs.map(f=>`<a data-act="chip" data-chip="${esc(f.caption||f.key)}" title="${esc(f.caption)}" style="display:block;padding:6px;border-radius:6px;font-size:13px;color:#334155;text-decoration:none;cursor:pointer">⭐ ${esc((f.caption||'').slice(0,30))}</a>`).join('');
+  if(list) list.innerHTML=html; if(mlist) mlist.innerHTML=html;
 }
 document.getElementById('recentToggle')?.addEventListener('click',()=>{
   const l=$('recentList'); l.style.display=l.style.display==='none'?'block':'none';
 });
 document.getElementById('favToggle')?.addEventListener('click',()=>{
   const l=$('favList'); l.style.display=l.style.display==='none'?'block':'none';
+});
+document.getElementById('mobileRecentToggle')?.addEventListener('click',()=>{
+  const l=$('mobileRecentList'); l.style.display=l.style.display==='none'?'block':'none';
+});
+document.getElementById('mobileFavToggle')?.addEventListener('click',()=>{
+  const l=$('mobileFavList'); l.style.display=l.style.display==='none'?'block':'none';
 });
 document.getElementById('sideSettingsBtn')?.addEventListener('click',()=>{ $('settingsBtn')?.click(); });
 document.getElementById('sideReindexBtn')?.addEventListener('click',()=> $('reindexBtn')?.click() || $('reindexBtn2')?.click());
@@ -851,16 +868,25 @@ async function ask(){
 function renderHistory(){
   try{
     const h=JSON.parse(localStorage.getItem('ix_hist')||'[]');
-    const c=$('recentList');
+    const c=$('recentList'); const mc=$('mobileRecentList');
     const cnt=document.getElementById('recentCount'); if(cnt) cnt.textContent=h.length;
-    if(!h.length){ c.innerHTML=`<a style="display:block;padding:6px;color:#94A3B8">${currentLang==='ar'?'لا يوجد':'No recent'}</a>`; return; }
-    c.innerHTML=h.map(q=>`<a data-chip="${esc(q)}" style="display:block;padding:6px;border-radius:6px;font-size:13px;color:#334155;text-decoration:none;cursor:pointer">${esc(q)}</a>`).join('');
+    const mcnt=document.getElementById('mobileRecentCount'); if(mcnt) mcnt.textContent=h.length;
+    const html=!h.length?`<a style="display:block;padding:6px;color:#94A3B8">${currentLang==='ar'?'لا يوجد':'No recent'}</a>`:h.map(q=>`<a data-chip="${esc(q)}" style="display:block;padding:6px;border-radius:6px;font-size:13px;color:#334155;text-decoration:none;cursor:pointer">${esc(q)}</a>`).join('');
+    if(c) c.innerHTML=html; if(mc) mc.innerHTML=html;
   }catch{}
 }
 $('askBtn').addEventListener('click',ask);
 $('q').addEventListener('keydown',e=>{if(e.key==='Enter') ask();});
 initVoice(); loadStatus(); setInterval(loadStatus,15000); renderHistory(); renderFavs(); $('q').focus();
-if('serviceWorker' in navigator){ window.addEventListener('load',()=> navigator.serviceWorker.register('/sw.js?v=4').then(r=>r.update()).catch(()=>{})); }
+if('serviceWorker' in navigator){ window.addEventListener('load',()=> navigator.serviceWorker.register('/sw.js?v=5').then(r=>r.update()).catch(()=>{})); }
+// PWA install prompt for mobile
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; const b=$('installBtn'); if(b) b.style.display='inline-block'; });
+$('installBtn')?.addEventListener('click',async()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); const c=await deferredPrompt.userChoice; deferredPrompt=null; $('installBtn').style.display='none'; toast(c.outcome==='accepted'?'Installing…':'Dismissed'); }
+  else { toast('Use browser menu → Install app / Add to Home Screen'); }
+});
+window.addEventListener('appinstalled',()=>{ const b=$('installBtn'); if(b) b.style.display='none'; });
 </script>
 </body>
 </html>
