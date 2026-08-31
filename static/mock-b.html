@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Installux — Dashboard Mock B · Orange</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;background:#FFF7ED;color:#1E293B;display:flex;height:100vh;overflow:hidden}
+:root{--orange:#EA580C;--orange2:#F97316;--orangeLight:#FFF7ED;--line:#FDBA74;--line2:#FED7AA;--dark:#7C2D12}
+nav{width:260px;background:#1A0F0A;color:#fff;display:flex;flex-direction:column;padding:10px 8px;transition:width .22s ease;overflow:hidden;border-right:1px solid #431407}
+nav.collapsed{width:64px}
+nav.collapsed .label,nav.collapsed .bottom span:not(.icon),nav.collapsed .logo span{opacity:0;pointer-events:none}
+nav.collapsed a{justify-content:center;padding:10px 0}
+nav .toprow{display:flex;align-items:center;gap:8px;padding:8px 4px}
+nav .logo{display:flex;align-items:center;gap:10px;font-weight:800;flex:1}
+nav .logo i{width:32px;height:32px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;display:grid;place-items:center;border-radius:8px;flex-shrink:0}
+#sidebarToggle{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;display:grid;place-items:center}
+nav a{color:#FDBA74;text-decoration:none;padding:9px 10px;border-radius:8px;font-size:13px;display:flex;gap:10px;align-items:center;margin-top:4px;white-space:nowrap}
+nav a .icon{width:18px;text-align:center;flex-shrink:0}
+nav a.active,nav a:hover{background:var(--orange);color:#fff}
+nav .bottom{margin-top:auto;padding-top:10px;border-top:1px solid rgba(253,186,116,.2);font-size:11px;color:#FDBA74}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#FFFBEB}
+.top{background:#fff;border-bottom:1px solid var(--line2);padding:10px 16px;display:flex;align-items:center;gap:10px}
+.tabs{display:flex;gap:8px}
+.tabs button{padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:#fff;font-size:12px;cursor:pointer}
+.tabs button.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.hero{margin:12px 16px;background:#fff;border:1px solid var(--line2);border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(234,88,12,.08)}
+.hero h2{font-size:15px;margin-bottom:4px}
+.hero p{font-size:12px;color:#9A3412;margin-bottom:10px}
+.row{display:flex;gap:8px}
+.row input{flex:1;padding:11px 12px;border:1px solid var(--line2);border-radius:10px;background:#FFFBEB}
+.btn{padding:10px 16px;border-radius:10px;border:none;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--orange);color:#fff}
+.btn.primary:hover{background:var(--dark)}
+.content{flex:1;display:grid;grid-template-columns:1fr 320px;gap:12px;padding:0 16px 16px;overflow:auto}
+@media(max-width:1000px){.content{grid-template-columns:1fr} .detail{order:-1}}
+.feed{display:flex;flex-direction:column;gap:12px}
+.card{background:#fff;border:1px solid var(--line2);border-radius:12px;padding:12px;box-shadow:0 1px 4px rgba(234,88,12,.06)}
+.detail{background:#fff;border:1px solid var(--line2);border-radius:12px;padding:12px;height:fit-content;position:sticky;top:0}
+.detail h3{font-size:11px;color:#9A3412;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.tag{display:inline-block;padding:2px 6px;background:#FFF7ED;color:var(--orange);border:1px solid var(--line2);border-radius:4px;font-size:10px;margin-top:4px}
+.hits{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.hit{width:150px;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:#fff}
+.hit img{width:100%;height:90px;object-fit:contain;background:#fff;border-bottom:1px solid var(--line2)}
+.hit .m{padding:6px;font-size:11px}
+.mock-switch{position:fixed;bottom:14px;right:14px;background:var(--orange);color:#fff;padding:10px 14px;border-radius:999px;font-size:13px;text-decoration:none;box-shadow:0 4px 12px rgba(234,88,12,.3)}
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="toprow">
+    <div class="logo"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;background:#fff;padding:2px;object-fit:contain"><span class="label">INSTALLUX</span></div>
+    <button id="sidebarToggle" title="Collapse">⟨</button>
+  </div>
+  <a class="active" href="#"><span class="icon">💬</span> <span class="label">Q&A — Image Search</span></a>
+  <a href="#"><span class="icon">🔍</span> <span class="label">Browse by System</span></a>
+  <a href="#"><span class="icon">🧩</span> <span class="label">Browse by Part Type</span></a>
+  <a href="#"><span class="icon">🕒</span> <span class="label">History</span></a>
+  <a href="#"><span class="icon">⭐</span> <span class="label">Favorites</span></a>
+  <a href="#"><span class="icon">📋</span> <span class="label">Copy / ZIP</span></a>
+  <div class="bottom"><span class="label">All devices • Responsive<br><span style="background:#FFF7ED;color:#9A3412;padding:2px 6px;border-radius:4px;font-size:10px">AI online</span> 230 pages</span></div>
+</nav>
+<div class="main">
+  <div class="top">
+    <button id="mobileToggle" style="display:none;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;background:#fff">☰</button>
+    <div class="tabs"><button class="active">All</button><button>COMETE 70TH</button><button>GALAXIE 32TH</button><button>GALAXIE 45TH</button></div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span style="font-size:12px;color:#9A3412">EN • English only</span><button style="padding:6px 10px;border-radius:6px;border:1px solid var(--line2);background:#fff">⚙</button></div>
+  </div>
+  <div class="hero">
+    <h2>Ask about Installux — Q&A first</h2>
+    <p>Collapsible orange sidebar like ChatGPT — hero always visible.</p>
+    <div class="row"><input placeholder="What is 5051?  •  hinge 560032 900×2000"><button class="btn" style="background:#FFF7ED;border:1px solid var(--line2)">📷</button><button class="btn primary">Ask</button></div>
+  </div>
+  <div class="content">
+    <div class="feed">
+      <div class="card"><b>Answer</b> — Reference 5051 — Glazing bead. No catalogue page (empty TOC filtered).<br><span style="font-size:12px;color:#9A3412">Copy includes part number + file number + formatted Word table</span></div>
+      <div class="card"><b>Parts & Accessories — Part Number</b><div class="hits"><div class="hit"><img src="https://via.placeholder.com/150x90?text=5051"><div class="m"><b>5051</b> glazing bead<br><span class="tag">profile</span></div></div></div></div>
+      <div class="card"><b>Source Pages</b> — Catalogue & Page Number — filtered, no nonsense 50-51 page shown.</div>
+    </div>
+    <div class="detail">
+      <h3>Details</h3>
+      <p style="font-size:13px"><b>Part 5051</b><br>Kind: profile<br>File: —<br>Page: —</p>
+      <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" style="flex:1;background:#FFF7ED;color:var(--orange);border:1px solid var(--line2)">📋 Copy</button><button class="btn" style="flex:1;background:#fff;border:1px solid var(--line2)">⬇ ZIP</button></div>
+      <h3 style="margin-top:14px">Filters</h3>
+      <p style="font-size:12px;color:#9A3412">Results 3 • Images 3 • System • Type</p>
+      <h3>Recent</h3><p style="font-size:12px">5051 → 560032 → 560017</p>
+    </div>
+  </div>
+</div>
+<a class="mock-switch" href="/mock-a">← Try Portal mock</a>
+<script>
+const sidebar=document.getElementById('sidebar');
+const toggle=document.getElementById('sidebarToggle');
+const mobile=document.getElementById('mobileToggle');
+function setCollapsed(v){
+  sidebar.classList.toggle('collapsed',v);
+  toggle.textContent=v?'⟩':'⟨';
+  localStorage.setItem('ix_sidebar_collapsed',v?'1':'0');
+}
+toggle.addEventListener('click',()=> setCollapsed(!sidebar.classList.contains('collapsed')));
+if(localStorage.getItem('ix_sidebar_collapsed')==='1') setCollapsed(true);
+// mobile: show toggle
+if(window.innerWidth<=900){ mobile.style.display='block'; mobile.addEventListener('click',()=> sidebar.style.display=sidebar.style.display==='none'?'flex':'none'); }
+</script>
+</body>
+</html>

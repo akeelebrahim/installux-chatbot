@@ -1,0 +1,17 @@
+## Hinge 560032 – Max. leaf weight for 900 × 2000 mm
+
+**560032** is a three‑leaf hinge (*Three-leaf hinges*) used in the COMÈTE® 70TH door system.
+
+The weight/dimension limits are given as **graphs**, not as a simple table, so the exact kg value for a leaf of 900 mm (width) × 2000 mm (height) depends on which zone the point falls into on the chart. Here is what the two available charts show:
+
+### With 2 × three-leaf hinges ref. 560032 [COMETE 70TH p.5]
+- Zones shown: **120 kg / 110 kg / 90 kg / 90 kg**
+- Axes: leaf width 700–1300 mm, leaf height 1800–2500 mm
+- An "unusable region" exists for large width/height combinations.
+
+### With 3 × three-leaf hinges ref. 560032 [COMETE 70TH p.6]
+- Zones shown: **150 kg / 130 kg / 120 kg / 100 kg**
+- Same axis ranges (width 700–1300 mm, height 1800–2500 mm)
+- Also has an "unusable region."
+
+At **900 mm width / 2000 mm height**, this point sits inside the charted range (not in the unusable region), but I don't have the precise curve

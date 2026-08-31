@@ -1,0 +1,14 @@
+{
+  "name": "Installux ChatBot",
+  "short_name": "Installux",
+  "description": "Local catalogue search for Installux 70TH Series with AI Q&A, image similarity, and sharing",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "icons": [
+    {"src": "/logo.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/logo.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

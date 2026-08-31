@@ -1,22 +1,22 @@
 {
-  "backend": "openrouter-haiku",
+  "backend": "openrouter",
   "backends": {
     "openrouter": {
-      "label": "Claude Sonnet 5 \u00b7 OpenRouter (more capable)",
+      "label": "Claude Sonnet 5 · OpenRouter (more capable)",
       "kind": "remote",
       "base_url": "https://openrouter.ai/api/v1",
       "model": "anthropic/claude-sonnet-5",
       "api_key_env": "OPENROUTER_API_KEY"
     },
     "openrouter-haiku": {
-      "label": "Claude Haiku 4.5 \u00b7 OpenRouter",
+      "label": "Claude Haiku 4.5 · OpenRouter",
       "kind": "remote",
       "base_url": "https://openrouter.ai/api/v1",
       "model": "anthropic/claude-haiku-4.5",
       "api_key_env": "OPENROUTER_API_KEY"
     },
     "llamafile": {
-      "label": "Qwen 2.5 3B \u00b7 local",
+      "label": "Qwen 2.5 3B · local",
       "kind": "local",
       "base_url": "http://127.0.0.1:8080/v1",
       "model": "qwen2.5-3b-instruct",
@@ -24,15 +24,15 @@
       "model_path": "llamafile/models/qwen2.5-3b-instruct-q5_k_m.gguf"
     }
   },
-  "compute": "gpu",
-  "gpu_layers": 999,
+  "compute": "cpu",
+  "gpu_layers": 0,
   "index_workers": 0,
   "context_pages": 6,
   "max_context_chars": 12000,
   "temperature": 0.2,
   "timeout": 180,
-  "port": 8010,
-  "open_browser": true,
+  "port": 8509,
+  "open_browser": false,
   "summarize": false,
   "cache_size": 200,
   "ocr": "auto",

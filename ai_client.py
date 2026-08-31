@@ -100,9 +100,13 @@ SYSTEM_PROMPT = (
     "- Quote exact values, references and dimensions as written in the source.\n"
     "- When a fact comes from a catalogue page, cite it as [COMETE 70TH p.12]. Facts that come "
     "from the reference data need no citation — never invent a page number for them.\n"
-    "- Answer in the language the customer used.\n"
+    "- Detect the customer's language: if the question contains Arabic script (\\u0600-\\u06FF), "
+    "answer entirely in Arabic (translate French terms to Arabic); otherwise answer in English "
+    "(translate French terms to English). Keep part numbers, dimensions and codes unchanged.\n"
+    "- When the UI is in Arabic mode the customer will write in Arabic — respect that and "
+    "stay in Arabic. When in English, stay in English.\n"
     "- Be concise and well structured: short lines, bullet lists, bold for part references.\n"
-    "- If the excerpts do not contain the answer, say so plainly and name what you would "
+    "- If the excerpts do not contain the answer, say so plainly in English and name what you would "
     "need (a system name, a part reference, or which drawing they are looking at)."
 )
 
@@ -332,8 +336,8 @@ def generate_summary(text: str, cfg: dict | None = None) -> str:
     if not text.strip():
         return ""
     prompt = (
-        "Summarise this catalogue page in 1-3 sentences. Focus on product and part names, "
-        f"references, dimensions and technical features. Max {cfg.get('max_summary_words', 70)} "
+        "Summarise this catalogue page in English in 1-3 sentences, translating any French to English. "
+        f"Focus on product and part names, references, dimensions and technical features. Max {cfg.get('max_summary_words', 70)} "
         "words.\n\nTEXT:\n" + text[:6000]
     )
     return _chat([{"role": "user", "content": prompt}], cfg,
@@ -378,7 +382,7 @@ def suggest_questions(question: str, snippets: list[str], cfg: dict | None = Non
         "- Each option must work as a search query on its own: name the thing, and the "
         "system when it matters. 3 to 9 words.\n"
         "- Make them genuinely different from each other.\n"
-        "- Same language as the customer's question.\n"
+        "- Always write in English (translate French terms to English).\n"
         "- Output ONLY the list, one option per line, no numbering and no preamble."
     )
     text = _chat([{"role": "user", "content": "\n\n".join(parts)}], cfg,

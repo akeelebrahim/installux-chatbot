@@ -1,0 +1,29 @@
+# secrets — never commit any of these
+.env
+.env.*
+!.env.example
+*key*.txt
+*keys*.json
+*secret*
+*.pem
+credentials*
+
+# generated index, renders and cached answers
+data/
+
+# local LLM runtime + weights (multi-GB, not for git)
+llamafile/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Installux — Portal Mock A</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,Segoe UI,sans-serif;background:#F2F4F7;color:#1E293B}
+:root{--blue:#0A3D62;--blue2:#0F5A8A;--accent:#0091D1;--light:#F2F4F7;--line:#E2E8F0;--card:#FFFFFF}
+header{background:var(--blue);color:#fff;display:flex;align-items:center;gap:16px;padding:10px 20px;position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.5px}
+.logo i{width:36px;height:36px;background:#fff;color:var(--blue);display:grid;place-items:center;border-radius:6px;font-weight:800}
+header nav{margin-left:auto;display:flex;gap:6px;align-items:center}
+header nav a{color:#CBD5E1;text-decoration:none;padding:6px 12px;border-radius:6px;font-size:13px}
+header nav a.active,header nav a:hover{background:rgba(255,255,255,.12);color:#fff}
+.sysbar{background:#fff;border-bottom:1px solid var(--line);display:flex;gap:8px;padding:10px 20px;overflow:auto}
+.pill{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer;white-space:nowrap}
+.pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pill:hover{border-color:var(--blue2)}
+.hero{background:#fff;margin:16px 20px;padding:22px;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.06);border:1px solid var(--line)}
+.hero h1{font-size:18px;margin-bottom:6px}
+.hero p{color:#64748B;font-size:13px;margin-bottom:14px}
+.searchrow{display:flex;gap:8px}
+.searchrow input{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none}
+.searchrow input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,145,209,.15)}
+.btn{padding:11px 18px;border-radius:10px;border:none;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:#F1F5F9}
+.chips{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 12px;background:#F1F5F9;border:1px solid var(--line);border-radius:999px;font-size:12px;cursor:pointer}
+.layout{display:grid;grid-template-columns:260px 1fr;gap:16px;padding:0 20px 20px}
+@media(max-width:900px){.layout{grid-template-columns:1fr} .side{order:2}}
+.side{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;height:fit-content;position:sticky;top:78px}
+.side h3{font-size:11px;letter-spacing:.5px;color:#64748B;text-transform:uppercase;margin:14px 0 8px}
+.side h3:first-child{margin-top:0}
+.side a{display:block;padding:7px 8px;border-radius:8px;font-size:13px;color:#334155;text-decoration:none}
+.side a:hover{background:#F1F5F9}
+.side a.active{background:#EFF6FF;color:var(--blue);font-weight:600}
+.main{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card h3{font-size:13px;margin-bottom:8px}
+.hits{display:flex;gap:12px;flex-wrap:wrap}
+.hit{width:180px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.hit img{width:100%;height:110px;object-fit:contain;background:#fff;border-bottom:1px solid var(--line)}
+.hit .m{padding:8px;font-size:12px}
+.badge{display:inline-block;padding:2px 6px;background:#EFF6FF;color:var(--blue);border-radius:4px;font-size:10px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mock-switch{position:fixed;bottom:14px;right:14px;background:var(--blue);color:#fff;padding:10px 14px;border-radius:999px;font-size:13px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i>IX</i> INSTALLUX <span style="font-weight:400;opacity:.7">ChatBot</span></div>
+  <nav>
+    <a class="active" href="#">Search</a><a href="#">Browse</a><a href="#">History</a><a href="#">Favorites</a>
+    <span style="margin-left:8px;background:#fff;color:var(--blue);padding:4px 8px;border-radius:6px;font-size:12px">EN</span>
+  </nav>
+</header>
+<div class="sysbar">
+  <button class="pill active">All systems</button><button class="pill">COMETE 70TH</button><button class="pill">GALAXIE 32TH</button><button class="pill">GALAXIE 45TH</button>
+  <span style="margin-left:auto;display:flex;gap:8px"><span class="badge">230 pages</span><span class="badge">6899 parts</span><span class="badge" style="background:#DCFCE7;color:#166534">AI online</span></span>
+</div>
+
+<div class="hero">
+  <h1>Ask about Installux catalogues</h1>
+  <p>Q&A + image search is first — try “hinge 560032 max weight 900×2000” or upload a photo</p>
+  <div class="searchrow">
+    <input placeholder="Ask in English — e.g. What is 5051?  •  Glazing bead options">
+    <button class="btn ghost">📷</button>
+    <button class="btn primary">Ask</button>
+  </div>
+  <div class="chips"><span class="chip">Glazing bead 5051</span><span class="chip">Hinge 560032 — 120 KG</span><span class="chip">Punching tools 70TH</span><span class="chip">Joint brosse</span></div>
+</div>
+
+<div class="layout">
+  <aside class="side">
+    <h3>Browse by part type</h3>
+    <a class="active" href="#">All types</a><a href="#">Profiles</a><a href="#">Accessories</a><a href="#">Drawings & Images</a>
+    <h3>Recent</h3>
+    <a href="#">5051 — Glazing bead</a><a href="#">560032 — Hinge 120 KG</a><a href="#">560017 + A5025</a>
+    <h3>Favorites</h3>
+    <a href="#">★ p.5 hinge weight table</a>
+    <h3>Filters</h3>
+    <a href="#">Results: 3</a><a href="#">Images: 3</a>
+  </aside>
+  <main class="main">
+    <div class="card">
+      <div class="topbar"><h3>Answer</h3><span class="badge">English only</span></div>
+      <p><b>Reference 5051</b> — Glazing bead. Reference photo available. No catalogue page mentions this reference beyond workbook — see part data.</p>
+      <p style="margin-top:8px;color:#64748B;font-size:12px">Generated in English · grounded in 0 pages</p>
+    </div>
+    <div class="card">
+      <h3>Parts & Accessories — Part Number</h3>
+      <div class="hits">
+        <div class="hit"><img src="https://via.placeholder.com/180x110?text=5051"><div class="m"><b>PART 5051</b><br>GLAZING BEAD<br><span class="badge">profile</span></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Source Pages — Catalogue & Page Number</h3>
+      <p style="font-size:13px;color:#64748B">No pages (filtered — empty TOC page 49 removed). Copy will include part number + file number in formatted Word table.</p>
+    </div>
+    <div class="card" style="display:flex;gap:8px;align-items:center"><span>Copy —</span><button class="btn ghost">📋 Copy all to clipboard</button><button class="btn ghost">⬇ ZIP</button></div>
+  </main>
+</div>
+
+<a class="mock-switch" href="/mock-b">Try Dashboard mock →</a>
+</body>
+</html>

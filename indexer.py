@@ -57,6 +57,8 @@ REF_CHUNK = 250
 
 # Installux part references: 102, 410031, L1502, 10230A, 11-140, 12AR05, 10X2-T
 REF_RE = re.compile(r"\b[A-Z]{0,3}\d{1,3}[A-Z0-9]*(?:[-/.][A-Z0-9]+)*\b")
+# TOC page ranges like "pages 50-51" must not be indexed as part 5051
+_PAGE_RANGE_RE = re.compile(r"^\d{1,3}-\d{1,3}$")
 
 
 def sanitize(name: str) -> str:
@@ -83,7 +85,7 @@ def init_db(conn: sqlite3.Connection) -> None:
         PRAGMA journal_mode=WAL;
         CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY,
-            sha1 TEXT NOT NULL UNIQUE,
+            sha1 TEXT NOT NULL,
             filename TEXT NOT NULL,
             title TEXT,
             system TEXT DEFAULT '',
@@ -425,9 +427,12 @@ def build_pdf_payload(pdf_path_s: str, systems: list[str], known_refs: set[str],
     pages, figures = [], []
     for page_num, page in enumerate(doc, start=1):
         text = page.get_text("text").strip()
+        upper = text.upper()
         refs = sorted({
-            r for tok in REF_RE.findall(text.upper())
+            r for tok in REF_RE.findall(upper)
             if (r := norm_ref(tok)) in known_refs and len(r) >= 2
+            # TOC page ranges like "pages 50-51" normalize to "5051" and must not be indexed as part 5051
+            and not (tok.count("-")==1 and tok.replace("-","").isdigit() and "PAGES" in upper[max(0, upper.find(tok)-30):upper.find(tok)+30])
         })
         summary = ""
         if summarize:
@@ -779,22 +784,18 @@ def rebuild(summarize: bool = False, workers: int = 0,
     do_summary = summarize and online
 
     pdfs = sorted(p for p in PDF_DIR.rglob("*") if p.is_file() and p.suffix.lower() == ".pdf")
-    # identical files under several system folders are one document with many tags
-    by_hash: dict[str, list[Path]] = {}
-    for p in pdfs:
-        by_hash.setdefault(sha1_of(p), []).append(p)
-
+    # each PDF becomes its own document (may share content with other folders)
     jobs = []
-    for paths in by_hash.values():
+    seen_stems: set[str] = set()
+    for p in pdfs:
+        stem = p.stem.lower()
+        # Allow duplicate stems if they're in different folders (e.g., Comete vs Galaxie)
         systems = sorted({
             detect_system(p.relative_to(PDF_DIR).parts[0]
                           if len(p.relative_to(PDF_DIR).parts) > 1 else "", p.name)
-            for p in paths
+            for p in [p]
         })
-        if len(paths) > 1:
-            print(f"  (identical file shared by {', '.join(systems)} — indexed once)",
-                  flush=True)
-        jobs.append((str(paths[0]), systems))
+        jobs.append((str(p), systems))
 
     print(f"Rendering {len(jobs)} unique PDF(s) from {len(pdfs)} file(s) "
           f"on {n_workers} core(s)…", flush=True)

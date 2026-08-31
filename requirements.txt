@@ -1,0 +1,18 @@
+# Core — the app runs on these alone (lexical search, images, answers)
+fastapi>=0.110
+uvicorn>=0.27
+pymupdf>=1.24
+numpy>=1.26
+pillow>=10.0
+openpyxl>=3.1
+python-multipart>=0.0.9
+rapidfuzz>=3.6
+
+# Optional — semantic (vector) search. Weights live in the shared HuggingFace
+# cache, never in this repo. Without these the app falls back to lexical search.
+sentence-transformers>=3.0
+torch>=2.2
+
+# Optional — local OCR fallback, used only when no vision-capable model backend
+# is configured. The hosted route needs nothing extra.
+easyocr>=1.7

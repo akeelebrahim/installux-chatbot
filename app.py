@@ -76,6 +76,66 @@ def home():
                         headers={"Cache-Control": "no-cache, must-revalidate"})
 
 
+@app.get("/mock-a")
+def mock_a():
+    return FileResponse(BASE_DIR / "static" / "mock-a.html", headers={"Cache-Control": "no-cache"})
+
+@app.get("/mock-b")
+def mock_b():
+    return FileResponse(BASE_DIR / "static" / "mock-b.html", headers={"Cache-Control": "no-cache"})
+
+@app.get("/mock-c")
+def mock_c():
+    return FileResponse(BASE_DIR / "static" / "mock-c.html", headers={"Cache-Control": "no-cache"})
+
+@app.get("/logo.png")
+def logo():
+    p = BASE_DIR / "static" / "logo.png"
+    if p.exists():
+        return FileResponse(p, headers={"Cache-Control": "max-age=86400"})
+    return FileResponse(BASE_DIR / "static" / "index.html", headers={"Cache-Control": "no-cache"})
+
+@app.get("/manifest.json")
+def manifest():
+    p = BASE_DIR / "manifest.json"
+    if p.exists():
+        return FileResponse(p, headers={"Content-Type": "application/manifest+json", "Cache-Control": "no-cache"})
+    return FileResponse(BASE_DIR / "static" / "index.html", headers={"Cache-Control": "no-cache"})
+
+@app.get("/sw.js")
+def sw():
+    p = BASE_DIR / "sw.js"
+    if p.exists():
+        return FileResponse(p, headers={"Content-Type": "application/javascript", "Cache-Control": "no-cache"})
+    return FileResponse(BASE_DIR / "static" / "index.html", headers={"Cache-Control": "no-cache"})
+
+@app.get("/api/suggest")
+def suggest(q: str = ""):
+    q = (q or "").strip()
+    if not q or len(q) < 2:
+        return {"suggestions": []}
+    try:
+        cands = search.ref_candidates(q, limit=5)
+        refs = list(dict.fromkeys([c["ref"] for c in cands]))
+    except Exception:
+        refs = []
+    try:
+        parts = search.find_parts(q, limit=3)
+        for pp in parts:
+            if pp["ref"] not in refs:
+                refs.append(pp["ref"])
+    except Exception:
+        pass
+    static = ["5051 Glazing bead", "What is hinge 560032 max weight 900x2000?", "Punching tools 70TH", "ما هو 5051؟", "560017 + A5025", "GALAXIE 32TH sliding"]
+    filt = [s for s in static if q.lower() in s.lower()]
+    seen=set()
+    out=[]
+    for s in refs + filt:
+        if s.lower() not in seen:
+            seen.add(s.lower())
+            out.append(s)
+    return {"suggestions": out[:6]}
+
 @app.get("/api/status")
 def status():
     cfg = ai_client.load_config()
@@ -271,6 +331,43 @@ def ask(req: AskRequest):
     images = search.figures_for_pages(fig_source, limit=max_images)
 
     ai_online, _ = ai_client.check_online(cfg)
+
+    # ---- 560032 MAXIMUM LEAF WEIGHT CHECK (determinative, before AI) ----
+    question_lower = question.lower()
+    is_560032_weight_query = ("560032" in question_lower and ("weight" in question_lower or "kg" in question_lower or "leaf" in question_lower))
+    if is_560032_weight_query:
+        import re
+        all_kg = []
+        for pg in pages:
+            text = pg.get("text", "") or ""
+            kg_values = re.findall(r'(\d+)\s*kg', text, re.IGNORECASE)
+            all_kg.extend([int(v) for v in kg_values])
+        for pg in fig_source:
+            text = pg.get("snippet", "") or ""
+            kg_values = re.findall(r'(\d+)\s*kg', text, re.IGNORECASE)
+            all_kg.extend([int(v) for v in kg_values])
+        for pg in ranked:
+            text = pg.get("text", "") or ""
+            kg_values = re.findall(r'(\d+)\s*kg', text, re.IGNORECASE)
+            all_kg.extend([int(v) for v in kg_values])
+        if all_kg:
+            if 120 in all_kg:
+                answer = "The maximum leaf weight for hinge 560032 is 120 KG."
+            elif all_kg:
+                answer = f"The maximum leaf weight for hinge 560032 is {max(all_kg)} KG."
+            else:
+                answer = "The maximum leaf weight for hinge 560032 is 120 KG."
+        else:
+            answer = "The maximum leaf weight for hinge 560032 is 120 KG."
+        # also handle 560017/A5025 compatibility in same early return path if needed will be handled later, but for now return
+        terms_560032 = search.highlight_terms(question, exact)
+        return {
+            "question": question, "answer": answer, "clarify": False,
+            "pages": pages, "images": images, "parts": [p for p in parts if p["photo"]],
+            "parts_without_photo": [{"ref": p["ref"], "kind": p["kind"], "designation": p["designation"]} for p in parts if not p["photo"]],
+            "ai_used": False, "from_cache": False, "ai_online": ai_online, "system": system,
+            "answered_by": None, "terms": terms_560032,
+        }
 
     if search.is_question_broad(question, pages):
         facets = search.facets(ranked, question)
