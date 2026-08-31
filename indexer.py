@@ -25,7 +25,7 @@ from collections import deque
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF (new API)
 import numpy as np
 
 import imgutil

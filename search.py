@@ -619,7 +619,7 @@ def highlight_rects(filename: str, page_num: int, terms: list[str],
     out: list[list[float]] = []
     wanted = [t for t in dict.fromkeys(terms) if len(t) > 2]
     try:
-        import fitz
+        import pymupdf as fitz
         path = (PDF_DIR / filename)
         if path.exists():
             doc = _doc_cache.get(filename)

@@ -46,6 +46,24 @@ button.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(2
 #heroChips .chip{font-size:10.5px;padding:4px 10px;max-width:110px;overflow:hidden;text-overflow:ellipsis}
 .layout{display:grid;grid-template-columns:260px 1fr;gap:14px;padding:0 16px 16px;align-items:start;transition:grid-template-columns .22s ease}
 @media(max-width:900px){.layout{grid-template-columns:1fr} .side{order:2} header{padding:8px 12px}}
+@media(max-width:600px){
+  body{height:auto;overflow:auto}
+  header{gap:8px;padding:8px 10px}
+  header nav{gap:4px;margin-left:0}
+  header nav a{padding:5px 7px;font-size:11px}
+  .sysbar{padding:8px 10px;gap:6px}
+  .pill{padding:5px 10px;font-size:11px}
+  .hero{margin:6px 10px;padding:10px}
+  .hero h1{font-size:13px}
+  .hero p{font-size:11px}
+  .searchrow{flex-direction:column}
+  .searchrow input{font-size:14px;padding:10px 12px}
+  .searchrow .btn{width:100%;justify-content:center;padding:10px}
+  .layout{padding:0 10px 10px;gap:10px}
+  .side{position:static;max-height:none}
+  .msg{max-width:100%;padding:12px 14px;font-size:13px}
+  .side a{font-size:12px}
+}
 .layout.collapsed{grid-template-columns:64px 1fr}
 .side{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;height:fit-content;position:sticky;top:78px;overflow:auto;max-height:calc(100vh - 90px);transition:all .22s ease}
 .side.collapsed{width:64px !important;padding:8px 4px;overflow:hidden}
@@ -147,11 +165,12 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
       <div style="font-weight:600;margin-bottom:8px" data-i18n="settings">Settings</div>
       <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="badge_docs">Docs</span> <b id="docCount2">0</b></div>
       <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="badge_pages">Pages</span> <b id="pageCount2">0</b></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="figures">Figures</span> <b id="figCount2">0</b></div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="parts">Parts</span> <b id="partCount2">0</b></div>
+      <div id="figRow2" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="figures">Figures</span> <b id="figCount2">0</b></div>
+      <div id="partRow2" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span data-i18n="parts">Parts</span> <b id="partCount2">0</b></div>
       <div style="font-size:12px;color:var(--muted);margin:6px 0" id="aiBadge2"><span class="dot off"></span><span data-i18n="ai_offline">AI offline</span></div>
       <label style="font-size:12px;display:flex;align-items:center;gap:6px;margin:8px 0"><span data-i18n="answers_by">Answers by</span> <select id="backend2" style="flex:1;padding:4px;border:1px solid var(--line);border-radius:6px"></select></label>
       <div style="display:flex;gap:6px;margin-top:8px"><button class="btn ghost2" id="reindexBtn2" style="flex:1" data-i18n="reindex">Re-index</button><button class="btn ghost2" id="exportBtn2" style="flex:1">ZIP</button></div>
+      <div style="margin-top:8px"><input type="file" id="pdfUpload2" accept=".pdf" style="display:none"><button class="btn ghost2" id="uploadBtn2" style="width:100%">Upload PDF</button><div id="uploadStatus2" style="font-size:11px;color:var(--muted);margin-top:4px"></div></div>
       <div style="margin-top:8px;display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--muted)">Local on</span><select id="compute2" style="padding:3px;border:1px solid var(--line);border-radius:6px"><option value="gpu">GPU</option><option value="cpu">CPU</option></select><button class="mini" id="applyCompute2">Apply</button></div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="clearBeforeSearch" checked> <span data-i18n="clear_before">Clear previous results before new search</span></label></div>
       <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
@@ -455,9 +474,13 @@ async function loadStatus(){
     if($('pageCount2')) $('pageCount2').textContent=s.total_pages;
     if($('sidePageCount')) $('sidePageCount').textContent=s.total_pages;
     $('figCount').textContent=s.total_figures||0;
+    if($('figCount2')) $('figCount2').textContent=s.total_figures||0;
     if($('sideFigCount')) $('sideFigCount').textContent=s.total_figures||0;
+    if($('figRow2')) $('figRow2').style.display=(s.total_figures? 'flex':'none');
     $('partCount').textContent=s.total_parts||0;
+    if($('partCount2')) $('partCount2').textContent=s.total_parts||0;
     if($('sidePartCount')) $('sidePartCount').textContent=s.total_parts||0;
+    if($('partRow2')) $('partRow2').style.display=(s.total_parts? 'flex':'none');
     const badge=$('aiBadge');
     const badge2=$('aiBadge2');
     if(s.reindexing){badge.innerHTML='<span class="dot busy"></span>Indexing…'; if(badge2) badge2.innerHTML='<span class="dot busy"></span>Indexing…';}
@@ -486,6 +509,22 @@ $('reindexBtn').addEventListener('click',async()=>{
     if(s.running) return; clearInterval(poll); loadStatus();
     if(s.error) addMsg('Failed: '+esc(s.error),'bot'); else if(s.result) addMsg(`Done — ${s.result.documents} docs, ${s.result.pages} pages`,'bot');
   },2000);
+});
+// PDF upload
+$('uploadBtn2')?.addEventListener('click',()=> $('pdfUpload2').click());
+$('pdfUpload2')?.addEventListener('change',async(e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const st=$('uploadStatus2'); st.textContent=currentLang==='ar'?'جاري الرفع…':'Uploading…';
+  try{
+    const fd=new FormData(); fd.append('file', f);
+    const r=await fetch('/api/upload',{method:'POST', body:fd});
+    const j=await r.json().catch(()=>({error:'Upload failed'}));
+    if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+    st.textContent=(currentLang==='ar'?'تم الرفع: ':'Uploaded: ')+j.filename+' — indexing…';
+    addMsg((currentLang==='ar'?'تم رفع ':'Uploaded ')+esc(j.filename)+' — re-indexing…','bot');
+    const poll=setInterval(async()=>{ const s=await (await fetch('/api/reindex-status')).json(); if(s.running) return; clearInterval(poll); loadStatus(); st.textContent=s.error?('Failed: '+s.error):(currentLang==='ar'?'اكتملت الفهرسة':'Indexing done'); if(!s.error) addMsg(currentLang==='ar'?'اكتملت الفهرسة — يمكنك البحث الآن':'Indexing done — you can search now','bot'); },2000);
+  }catch(err){ st.textContent='Error: '+err.message; addMsg('Upload failed: '+esc(err.message),'bot'); }
+  finally{ e.target.value=''; }
 });
 $('backend').addEventListener('change',async()=>{
   const name=$('backend').value; const label=$('backend').selectedOptions[0]?.textContent||name;
@@ -774,7 +813,10 @@ async function ask(){
   const typing=addMsg(currentLang==='ar'?i18n.ar.searching:i18n.en.searching,'bot');
   try{
     const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q, max_pages:Math.max(1,+$('maxPages')?.value||3), max_images:Math.max(1,+$('maxImages')?.value||3)})});
-    const d=await r.json(); lastResult=d; typing.remove();
+    let d; const _ct=r.headers.get('content-type')||'';
+    if(_ct.includes('application/json')) d=await r.json();
+    else { const t=await r.text(); try{ d=JSON.parse(t); }catch{ d={answer: currentLang==='ar' ? 'هذا المساعد مخصص فقط للأسئلة المتعلقة بـ Installux Gulf — الكتالوجات، المقاطع، الإكسسوارات والبيانات الفنية.' : 'This chatbot is only designed to answer questions related to Installux Gulf — catalogue profiles, accessories, systems and technical data.', clarify:false, pages:[], images:[], parts:[], parts_without_photo:[], ai_used:false}; } }
+    lastResult=d; typing.remove();
     if(d.error && !d.answer){addMsg('⚠ '+esc(d.error),'bot'); return}
     if(d.clarify){ addMsg(md(d.answer),'bot'); if(d.suggestions?.length) addMsg('<b>'+(currentLang==='ar'?'اختر':'Pick')+'</b>'+chipRow(d.suggestions),'bot'); }
     else {

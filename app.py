@@ -244,6 +244,19 @@ def ask(req: AskRequest):
                 "ai_used": False, "ai_online": ai_client.check_online(cfg)[0],
                 "system": None}
 
+    # ── out-of-scope guard: answer friendly, never return HTML ──
+    _lower = question.lower()
+    _installux_terms = ["installux","profile","glazing","bead","hinge","punching","door","window","aluminium","aluminum","catalog","frame","sash","threshold","gasket","accessory","accessories","part","series","system","70th","galaxie","comete","calculation","weight","reference","kg","chariot","broom","seal"]
+    _out_terms = ["recipe","cook","rice","chicken","cake","weather","football","soccer","joke","story","music","movie","politics","religion","health","medical"]
+    _is_installux = any(t in _lower for t in _installux_terms) or bool(re.search(r'\b\d{4,6}\b', _lower)) or search.is_reference_query(question)
+    _is_out = any(k in _lower for k in _out_terms) and not _is_installux
+    # also treat very short non-technical free text with zero catalogue hit as out-of-scope later, but handle obvious cases now
+    if _is_out:
+        msg = "This chatbot is only designed to answer questions related to Installux Gulf — catalogue profiles, accessories, systems and technical data."
+        if any(ord(c) > 127 for c in question):
+            msg = "هذا المساعد مخصص فقط للأسئلة المتعلقة بـ Installux Gulf — الكتالوجات، المقاطع، الإكسسوارات والبيانات الفنية."
+        return {"question": question, "answer": msg, "clarify": False, "pages": [], "images": [], "parts": [], "parts_without_photo": [], "ai_used": False, "ai_online": ai_client.check_online(cfg)[0], "system": None, "terms": []}
+
     q_pages, q_images = search.parse_counts(question)
     max_pages = max(1, min(20, q_pages or req.max_pages or cfg.get("default_pages", 3)))
     max_images = max(1, min(40, q_images or req.max_images or cfg.get("default_images", 3)))
@@ -336,7 +349,6 @@ def ask(req: AskRequest):
     question_lower = question.lower()
     is_560032_weight_query = ("560032" in question_lower and ("weight" in question_lower or "kg" in question_lower or "leaf" in question_lower))
     if is_560032_weight_query:
-        import re
         all_kg = []
         for pg in pages:
             text = pg.get("text", "") or ""
@@ -488,6 +500,33 @@ def reindex():
 @app.get("/api/reindex-status")
 def reindex_status():
     return dict(_reindex_state)
+
+
+@app.post("/api/upload")
+async def upload_pdf(file: UploadFile = File(...)):
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        return JSONResponse({"error": "Only PDF files are allowed."}, status_code=400)
+    pdfs_dir = BASE_DIR / "pdfs"
+    pdfs_dir.mkdir(parents=True, exist_ok=True)
+    dest = pdfs_dir / Path(file.filename).name
+    try:
+        data = await file.read()
+        if len(data) == 0:
+            return JSONResponse({"error": "Empty file."}, status_code=400)
+        dest.write_bytes(data)
+    except Exception as exc:
+        return JSONResponse({"error": f"Failed to save PDF: {exc}"}, status_code=500)
+    # trigger reindex in background so new PDF is indexed
+    try:
+        with _reindex_lock:
+            if not _reindex_state["running"]:
+                cfg = ai_client.load_config()
+                summarize = bool(cfg.get("summaries", False))
+                _reindex_state.update(running=True, done=False, error=None, result=None)
+                threading.Thread(target=_do_reindex, args=(summarize,), daemon=True).start()
+    except Exception:
+        pass
+    return {"ok": True, "filename": dest.name, "size": len(data), "reindexing": True}
 
 
 # --------------------------------------------------------------------------
