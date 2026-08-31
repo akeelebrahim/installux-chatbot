@@ -1,5 +1,5 @@
 /* Installux ChatBot PWA Service Worker */
-const CACHE_NAME = "installux-chatbot-v5";
+const CACHE_NAME = "installux-chatbot-v6";
 const PRECACHE_URLS = [
   "/",
   "/manifest.json",
