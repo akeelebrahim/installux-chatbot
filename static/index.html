@@ -48,7 +48,7 @@ button.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(2
 @media(max-width:900px){.layout{grid-template-columns:1fr} .side{order:2} header{padding:8px 12px}}
 @media(max-width:600px){
   body{height:auto;overflow:auto}
-  header{gap:8px;padding:8px 10px}
+  header{gap:8px;padding:8px 10px;flex-wrap:wrap}
   header nav{gap:4px;margin-left:0}
   header nav a{padding:5px 7px;font-size:11px}
   .sysbar{padding:8px 10px;gap:6px}
@@ -59,10 +59,14 @@ button.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(2
   .searchrow{flex-direction:column}
   .searchrow input{font-size:14px;padding:10px 12px}
   .searchrow .btn{width:100%;justify-content:center;padding:10px}
-  .layout{padding:0 10px 10px;gap:10px}
-  .side{position:static;max-height:none}
+  .layout{padding:0 10px 10px;gap:10px;grid-template-columns:1fr}
+  .side{display:none}
+  .side.mobile-open{display:block;position:fixed;left:0;right:0;top:56px;bottom:0;z-index:35;background:#fff;overflow:auto;padding:12px;border-radius:0;max-height:none;height:auto;border:none}
   .msg{max-width:100%;padding:12px 14px;font-size:13px}
   .side a{font-size:12px}
+  .card{width:100%}
+  .hits,.imgs{gap:8px}
+  .spacer{display:none}
 }
 .layout.collapsed{grid-template-columns:64px 1fr}
 .side{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;height:fit-content;position:sticky;top:78px;overflow:auto;max-height:calc(100vh - 90px);transition:all .22s ease}
@@ -155,7 +159,7 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
 <body>
 <header>
   <button id="sidebarToggle" title="Toggle sidebar" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);width:32px;height:32px;border-radius:6px;display:grid;place-items:center;cursor:pointer;font-size:14px">☰</button>
-  <div class="logo" onclick="location.href='/'"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;padding:2px"><span data-i18n="brand">INSTALLUX ChatBot</span><span style="font-size:10px;opacity:.7;margin-left:4px">v3</span></div>
+  <div class="logo" onclick="location.href='/'"><img src="/logo.png" alt="logo" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#fff;padding:2px"><span data-i18n="brand">INSTALLUX ChatBot</span><span style="font-size:10px;opacity:.7;margin-left:4px">v4</span></div>
   <button id="toTopBtn" title="Back to top — scroll to search" style="margin-left:6px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:16px;line-height:1">↑</button>
   <span class="spacer"></span>
   <button id="langToggle" title="Switch language">EN / عربي</button>
@@ -586,11 +590,15 @@ if(navSearch) navSearch.addEventListener('click',e=>{e.preventDefault(); documen
 const _layoutEl=document.querySelector('.layout');
 const _sideEl=document.querySelector('.side');
 $('sidebarToggle')?.addEventListener('click',()=>{
+  if(window.innerWidth<=600){
+    _sideEl?.classList.toggle('mobile-open');
+    return;
+  }
   _layoutEl?.classList.toggle('collapsed');
   _sideEl?.classList.toggle('collapsed');
   localStorage.setItem('ix_sidebar_collapsed', _sideEl?.classList.contains('collapsed')?'1':'0');
 });
-if(localStorage.getItem('ix_sidebar_collapsed')==='1'){
+if(localStorage.getItem('ix_sidebar_collapsed')==='1' && window.innerWidth>600){
   _layoutEl?.classList.add('collapsed');
   _sideEl?.classList.add('collapsed');
 }
@@ -852,7 +860,7 @@ function renderHistory(){
 $('askBtn').addEventListener('click',ask);
 $('q').addEventListener('keydown',e=>{if(e.key==='Enter') ask();});
 initVoice(); loadStatus(); setInterval(loadStatus,15000); renderHistory(); renderFavs(); $('q').focus();
-if('serviceWorker' in navigator){ window.addEventListener('load',()=> navigator.serviceWorker.register('/sw.js?v=3').then(r=>r.update()).catch(()=>{})); }
+if('serviceWorker' in navigator){ window.addEventListener('load',()=> navigator.serviceWorker.register('/sw.js?v=4').then(r=>r.update()).catch(()=>{})); }
 </script>
 </body>
 </html>
