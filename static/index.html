@@ -64,18 +64,27 @@ body[dir="rtl"] #imgBtn{right:auto !important;left:6px !important}
   .searchrow input{font-size:14px;padding:10px 12px}
   .searchrow .btn{width:100%;justify-content:center;padding:10px}
   .layout{padding:0 10px 10px;gap:10px;grid-template-columns:1fr}
-  .side{display:none !important}
+  .side{position:fixed;left:-260px;top:56px;height:calc(100vh - 56px);width:260px !important;z-index:30;display:block !important;transition:left .22s;overflow:auto;border-radius:0}
+  .side.open{left:0}
+  .side.collapsed{left:-260px !important;width:260px !important}
+  .side.collapsed.open{left:0 !important}
+  .app-layout{flex-direction:column;overflow:auto}
+  .app-layout .side{position:fixed}
+  /* keep hero full width on mobile when sidebar hidden */
   .msg{max-width:100%;padding:12px 14px;font-size:13px}
   .side a{font-size:12px}
   .card{width:100%}
   .hits,.imgs{gap:8px}
   .spacer{display:none}
   .mobile-only{display:flex !important}
-  #sidebarToggle{display:none !important}
+  #sidebarToggle{display:grid !important}
   #settingsPanel{position:fixed !important;left:10px !important;right:10px !important;top:56px !important;width:auto !important;max-width:none !important}
   body[dir="rtl"] #settingsPanel{left:10px !important;right:10px !important}
 }
 .layout.collapsed{grid-template-columns:64px 1fr}
+.app{display:flex;flex:1;overflow:hidden}
+@media(max-width:900px){.app{flex-direction:column;overflow:auto} .app .side{width:100% !important;height:auto !important;position:static !important;order:2;max-height:none;border-radius:12px;margin:0 16px 16px} .app > div:last-child{order:1;overflow:visible} header{padding:8px 12px}}
+@media(max-width:900px){.side{display:none} .side.mobile-open{display:flex !important;position:fixed;left:0;top:56px;z-index:25;height:calc(100vh - 56px);width:280px;box-shadow:0 8px 24px rgba(0,0,0,.2);border-radius:0}}
 .side{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;height:fit-content;position:sticky;top:78px;overflow:auto;max-height:calc(100vh - 90px);transition:all .22s ease}
 .side.collapsed{width:64px !important;padding:8px 4px;overflow:hidden}
 .side.collapsed h3,.side.collapsed #recentList,.side.collapsed #favList,.side.collapsed p,.side.collapsed #recentToggle,.side.collapsed #favToggle{opacity:0;pointer-events:none;height:0;overflow:hidden;margin:0;padding:0;border:none}
@@ -196,7 +205,7 @@ mark{background:rgba(250,204,21,.30);border-radius:2px;padding:0 1px}
 </header>
 
 
-<div style="display:flex;flex:1;overflow:hidden">
+<div class="app">
   <aside class="side" id="side" style="width:260px;flex-shrink:0;height:calc(100vh - 56px);position:sticky;top:56px;overflow:auto;border-radius:0;border-left:none;border-top:none;border-bottom:none">
     <h3 data-i18n="browse_type">Browse by part type</h3>
     <a class="active" data-filter="all" data-i18n="all_types">All types</a>
@@ -604,13 +613,21 @@ function initVoice(){
 const navSearch=document.querySelector('nav a[data-i18n="nav_search"]');
 if(navSearch) navSearch.addEventListener('click',e=>{e.preventDefault(); document.querySelector('.hero').scrollIntoView({behavior:'smooth',block:'start'}); $('q').focus(); document.querySelectorAll('header nav a').forEach(a=>a.classList.remove('active')); e.target.classList.add('active');});
 // collapsible sidebar like ChatGPT — orange theme
-const _layoutEl=document.querySelector('.layout');
+const _layoutEl=document.querySelector('.app');
 const _sideEl=document.querySelector('.side');
 $('sidebarToggle')?.addEventListener('click',()=>{
-  if(window.innerWidth<=600) return;
+  if(window.innerWidth<=600){
+    _sideEl?.classList.toggle('open');
+    return;
+  }
   _layoutEl?.classList.toggle('collapsed');
   _sideEl?.classList.toggle('collapsed');
   localStorage.setItem('ix_sidebar_collapsed', _sideEl?.classList.contains('collapsed')?'1':'0');
+});
+document.addEventListener('click',e=>{
+  if(window.innerWidth<=600 && _sideEl?.classList.contains('open') && !e.target.closest('.side') && !e.target.closest('#sidebarToggle')){
+    _sideEl.classList.remove('open');
+  }
 });
 if(localStorage.getItem('ix_sidebar_collapsed')==='1' && window.innerWidth>600 && !_sideEl?.classList.contains('mobile-open')){
   _layoutEl?.classList.add('collapsed');
