@@ -57,7 +57,9 @@ async def lifespan(app: FastAPI):
     modelserver.ensure_running()
     # load the visual-search models off the request path: cold start is ~15 s and
     # the first customer to upload an image should not pay for it
-    threading.Thread(target=_warm_visual, daemon=True).start()
+    # Render 2GB can OOM on warmup — set DISABLE_WARMUP=1 on Render only, localhost keeps warmup
+    if os.getenv("DISABLE_WARMUP") != "1":
+        threading.Thread(target=_warm_visual, daemon=True).start()
     yield
 
 
