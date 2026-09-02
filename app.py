@@ -384,34 +384,46 @@ def ask(req: AskRequest):
         }
 
     if search.is_question_broad(question, pages):
-        facets = search.facets(ranked, question)
-        deterministic = search.fallback_suggestions(question, ranked)
-        suggestions = list(deterministic)
-        snippets = [p["snippet"] for p in ranked[:6] if p["snippet"]]
-        # without real content the model has nothing to ground on and invents
-        # plausible-sounding products, so only ask it when we have evidence
-        if ai_online and (snippets or facets["topics"] or facets["components"]):
+        try:
+            facets = search.facets(ranked, question)
+            deterministic = search.fallback_suggestions(question, ranked)
+            suggestions = list(deterministic)
+            snippets = [p["snippet"] for p in ranked[:6] if p["snippet"]]
+            if ai_online and (snippets or facets["topics"] or facets["components"]):
+                try:
+                    llm = ai_client.suggest_questions(question, snippets, cfg, facets=facets)
+                    if llm:
+                        seen = {s.lower() for s in llm}
+                        suggestions = llm + [s for s in deterministic if s.lower() not in seen][:max(0, 4 - len(llm))]
+                except Exception as exc:
+                    log.info("suggestion call failed: %s", exc)
+            suggestions = suggestions[:6]
+            return {
+                "question": question,
+                "answer": f"“{question}” covers a lot of ground in these catalogues. "
+                          "Pick one to narrow it down:",
+                "clarify": True, "suggestions": suggestions, "facets": facets,
+                "pages": pages, "images": images, "parts": parts,
+                "ai_used": False, "ai_online": ai_online, "system": system,
+                "terms": terms,
+            }
+        except Exception as e:
+            log.warning("broad handling failed for %r: %s", question, e)
+            # fallback to deterministic suggestions without LLM/facets that may have failed
             try:
-                llm = ai_client.suggest_questions(question, snippets, cfg, facets=facets)
-                if llm:
-                    # the model phrases them better, but it does not always return
-                    # enough — top up from the index-derived list so the customer
-                    # always gets a real choice
-                    seen = {s.lower() for s in llm}
-                    suggestions = llm + [s for s in deterministic
-                                         if s.lower() not in seen][:max(0, 4 - len(llm))]
-            except Exception as exc:
-                log.info("suggestion call failed: %s", exc)
-        suggestions = suggestions[:6]
-        return {
-            "question": question,
-            "answer": f"“{question}” covers a lot of ground in these catalogues. "
-                      "Pick one to narrow it down:",
-            "clarify": True, "suggestions": suggestions, "facets": facets,
-            "pages": pages, "images": images, "parts": parts,
-            "ai_used": False, "ai_online": ai_online, "system": system,
-            "terms": terms,
-        }
+                facets = search.facets(ranked, question)
+                deterministic = search.fallback_suggestions(question, ranked)
+            except Exception:
+                facets = {"systems": [], "doc_kinds": [], "topics": [], "components": []}
+                deterministic = []
+            return {
+                "question": question,
+                "answer": f"“{question}” covers a lot of ground in these catalogues. Pick one to narrow it down:",
+                "clarify": True, "suggestions": deterministic[:6], "facets": facets,
+                "pages": pages, "images": images, "parts": parts,
+                "ai_used": False, "ai_online": ai_online, "system": system,
+                "terms": terms,
+            }
 
     answer, from_cache = None, False
     if ai_online and (pages or parts):

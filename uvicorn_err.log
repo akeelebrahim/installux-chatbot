@@ -1,21 +1,0 @@
-INFO:     Started server process [20352]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:8509 (Press CTRL+C to quit)
-INFO:timm.models._builder:Loading pretrained weights from Hugging Face hub (timm/vit_small_patch14_dinov2.lvd142m)
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/timm/vit_small_patch14_dinov2.lvd142m/resolve/main/model.safetensors "HTTP/1.1 302 Found"
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-INFO:timm.models._hub:[timm/vit_small_patch14_dinov2.lvd142m] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors.
-INFO:timm.layers.pos_embed:Resized position embedding: (37, 37) to (32, 32).
-INFO:installux:DINOv2 loaded on cuda
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/ETH-CVG/lightglue_superpoint/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/ETH-CVG/lightglue_superpoint/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/ETH-CVG/lightglue_superpoint/5f5f626efee99f37dbc9eafea879d24d297aeab8/preprocessor_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/ETH-CVG/lightglue_superpoint/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/ETH-CVG/lightglue_superpoint/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/ETH-CVG/lightglue_superpoint/5f5f626efee99f37dbc9eafea879d24d297aeab8/preprocessor_config.json "HTTP/1.1 200 OK"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/ETH-CVG/lightglue_superpoint/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/ETH-CVG/lightglue_superpoint/5f5f626efee99f37dbc9eafea879d24d297aeab8/config.json "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/329 [00:00<?, ?it/s]Loading weights: 100%|##########| 329/329 [00:00<00:00, 9044.19it/s]
-INFO:installux:partial-image search ready
